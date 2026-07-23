@@ -28,6 +28,8 @@
     .stat-box h3 { color: #ffd700; font-size: 24px; }
     .stat-box p { color: #0f0; margin: 10px 0; }
     .nav { display: flex; justify-content: space-between; margin: 20px 0; }
+    .foto-preview { width: 100%; max-height: 250px; border: 2px solid #0f0; border-radius: 4px; margin: 10px 0; display: none; }
+    .foto-preview.show { display: block; }
   </style>
 </head>
 <body>
@@ -44,14 +46,29 @@
     <h1>⚙️ ADMIN</h1>
     <button onclick="logout()" style="background:#ff3333">← Salir</button>
   </div>
+
+  <div class="box">
+    <label>📷 Foto del Artículo:</label>
+    <img id="fotoPreview" class="foto-preview">
+    <button onclick="openCamera()">📷 Cámara</button>
+    <button onclick="clearFoto()" style="background:#ff3333">✕ Limpiar</button>
+  </div>
+
+  <div class="box">
+    <label>🔗 URL Foto (Google, Facebook, etc):</label>
+    <input type="text" id="urlFoto" class="full" placeholder="https://ejemplo.com/foto.jpg" oninput="loadFotoURL()">
+  </div>
+
   <div class="box">
     <label>Chontico Noche (últimos 2 dígitos):</label>
     <input type="text" id="chontico" class="full" maxlength="2" oninput="saveConfig()">
   </div>
+
   <div class="box">
     <label>Nombre Ganador:</label>
     <input type="text" id="ganador" class="full" oninput="saveConfig()">
   </div>
+
   <div class="box">
     <label>Puestos Vendidos:</label>
     <p id="porcentaje" style="color:#ffd700; font-size:20px;">0%</p>
@@ -63,6 +80,11 @@
     <h1>🦅 QUINIENTAZO</h1>
     <button onclick="goBack()" style="background:#ffd700">← Atrás</button>
   </div>
+
+  <div id="fotoPublic" style="text-align:center; margin: 20px 0;">
+    <img id="pubFoto" style="max-width: 100%; max-height: 300px; border: 2px solid #0f0; border-radius: 4px; display: none;">
+  </div>
+
   <div class="stats">
     <div class="stat-box">
       <h3>Puestos</h3>
@@ -75,6 +97,7 @@
       <p>Últimos 2 dígitos</p>
     </div>
   </div>
+
   <h2>Elige tus Números</h2>
   <div class="grid" id="grid"></div>
   <div style="text-align: center; margin-top: 30px; color: #999; font-size: 12px;">
@@ -84,7 +107,7 @@
 
 <script>
 const PIN = '1234';
-let config = { chontico: '', ganador: '' };
+let config = { chontico: '', ganador: '', foto: '' };
 let puestos = Array(50).fill(false);
 let selectedNumbers = [];
 
@@ -102,8 +125,53 @@ function saveConfig() {
   updateUI();
 }
 
-function savePuestos() {
-  localStorage.setItem('p', JSON.stringify(puestos));
+function saveFoto(dataUrl) {
+  config.foto = dataUrl;
+  localStorage.setItem('config', JSON.stringify(config));
+}
+
+function openCamera() {
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(stream => {
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.play();
+      const canvas = document.createElement('canvas');
+      const captureBtn = document.createElement('button');
+      captureBtn.textContent = '📸 Capturar';
+      captureBtn.onclick = () => {
+        const ctx = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+        const dataUrl = canvas.toDataURL('image/jpeg');
+        document.getElementById('fotoPreview').src = dataUrl;
+        document.getElementById('fotoPreview').classList.add('show');
+        document.getElementById('urlFoto').value = '';
+        saveFoto(dataUrl);
+        stream.getTracks().forEach(t => t.stop());
+      };
+      alert('Cámara abierta. Haz clic en el botón para capturar.');
+    })
+    .catch(e => alert('No se pudo acceder a la cámara: ' + e.message));
+}
+
+function loadFotoURL() {
+  const url = document.getElementById('urlFoto').value.trim();
+  if (url) {
+    document.getElementById('fotoPreview').src = url;
+    document.getElementById('fotoPreview').classList.add('show');
+    config.foto = url;
+    saveFoto(url);
+  }
+}
+
+function clearFoto() {
+  document.getElementById('fotoPreview').src = '';
+  document.getElementById('fotoPreview').classList.remove('show');
+  document.getElementById('urlFoto').value = '';
+  config.foto = '';
+  localStorage.setItem('config', JSON.stringify(config));
 }
 
 function login() {
@@ -113,6 +181,11 @@ function login() {
     loadConfig();
     document.getElementById('chontico').value = config.chontico;
     document.getElementById('ganador').value = config.ganador;
+    document.getElementById('urlFoto').value = '';
+    if (config.foto) {
+      document.getElementById('fotoPreview').src = config.foto;
+      document.getElementById('fotoPreview').classList.add('show');
+    }
     updateUI();
   } else {
     alert('PIN incorrecto');
@@ -129,6 +202,10 @@ function goPublic() {
   document.getElementById('pin').classList.add('hidden');
   document.getElementById('public').classList.remove('hidden');
   loadConfig();
+  if (config.foto) {
+    document.getElementById('pubFoto').src = config.foto;
+    document.getElementById('pubFoto').style.display = 'block';
+  }
   buildGrid();
 }
 
