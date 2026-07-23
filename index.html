@@ -12,7 +12,6 @@
     h1 { color: #ffd700; font-size: 48px; text-align: center; }
     h2 { color: #ffd700; font-size: 28px; margin: 20px 0; }
     input { padding: 12px; background: #1a1a1a; border: 2px solid #0f0; color: #0f0; border-radius: 4px; width: 250px; font-size: 14px; }
-    input:disabled { background: #333; cursor: not-allowed; opacity: 0.6; }
     button { padding: 12px 24px; background: #ffd700; color: #000; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 14px; margin: 5px; }
     button:hover { background: #ffed4e; }
     .admin { background: #000; padding: 30px; max-width: 1000px; margin: 0 auto; }
@@ -24,16 +23,11 @@
     .gridBtn:disabled { background: #666; color: #999; opacity: 0.5; cursor: not-allowed; }
     .gridBtn.selected { background: #0f0; color: #000; }
     .public { background: #000; padding: 20px; min-height: 100vh; }
-    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); }
-    .modal.show { display: flex; align-items: center; justify-content: center; }
-    .modal-content { background: #1a1a1a; border: 2px solid #0f0; padding: 30px; border-radius: 8px; max-width: 500px; text-align: center; color: #0f0; }
-    .modal-content input { margin: 10px 0; }
     .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
     .stat-box { background: #1a1a1a; border: 2px solid #0f0; padding: 20px; border-radius: 4px; text-align: center; }
     .stat-box h3 { color: #ffd700; font-size: 24px; }
     .stat-box p { color: #0f0; margin: 10px 0; }
     .nav { display: flex; justify-content: space-between; margin: 20px 0; }
-    .readonly { background: #333; color: #999; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -47,25 +41,16 @@
 
 <div id="admin" class="admin hidden">
   <div class="nav">
-    <h1>⚙️ ADMIN (LECTURA)</h1>
+    <h1>⚙️ ADMIN</h1>
     <button onclick="logout()" style="background:#ff3333">← Salir</button>
-  </div>
-  <p style="color:#ffaa00; margin:10px 0;">⚠️ Config desde Terminal: nano config.txt</p>
-  <div class="box">
-    <label>PIN:</label>
-    <input type="text" id="pinView" class="full readonly" disabled value="1234">
   </div>
   <div class="box">
     <label>Chontico Noche (últimos 2 dígitos):</label>
-    <input type="text" id="chontico" class="full readonly" disabled>
+    <input type="text" id="chontico" class="full" maxlength="2" oninput="saveConfig()">
   </div>
   <div class="box">
-    <label>Ganador:</label>
-    <input type="text" id="ganador" class="full readonly" disabled>
-  </div>
-  <div class="box">
-    <label>Estado:</label>
-    <input type="text" id="estado" class="full readonly" disabled>
+    <label>Nombre Ganador:</label>
+    <input type="text" id="ganador" class="full" oninput="saveConfig()">
   </div>
   <div class="box">
     <label>Puestos Vendidos:</label>
@@ -97,30 +82,27 @@
   </div>
 </div>
 
-<div id="modal" class="modal">
-  <div class="modal-content">
-    <h2>📦 Compra #1</h2>
-    <label>Tu nombre:</label>
-    <input type="text" id="modalNombre" placeholder="Nombre">
-    <label>Tu WhatsApp:</label>
-    <input type="text" id="modalWp" placeholder="Número">
-    <button onclick="confirmarCompra()">✓ CONFIRMAR</button>
-    <button onclick="cancelarCompra()" style="background:#ff3333">✕ CANCELAR</button>
-  </div>
-</div>
-
 <script>
 const PIN = '1234';
+let config = { chontico: '', ganador: '' };
 let puestos = Array(50).fill(false);
 let selectedNumbers = [];
 
-function loadData() {
-  const saved = localStorage.getItem('p');
-  if (saved) puestos = JSON.parse(saved);
+function loadConfig() {
+  const saved = localStorage.getItem('config');
+  if (saved) config = JSON.parse(saved);
+  const savedPuestos = localStorage.getItem('p');
+  if (savedPuestos) puestos = JSON.parse(savedPuestos);
+}
+
+function saveConfig() {
+  config.chontico = document.getElementById('chontico').value;
+  config.ganador = document.getElementById('ganador').value;
+  localStorage.setItem('config', JSON.stringify(config));
   updateUI();
 }
 
-function saveData() {
+function savePuestos() {
   localStorage.setItem('p', JSON.stringify(puestos));
 }
 
@@ -128,7 +110,10 @@ function login() {
   if (document.getElementById('pinInput').value === PIN) {
     document.getElementById('pin').classList.add('hidden');
     document.getElementById('admin').classList.remove('hidden');
-    loadData();
+    loadConfig();
+    document.getElementById('chontico').value = config.chontico;
+    document.getElementById('ganador').value = config.ganador;
+    updateUI();
   } else {
     alert('PIN incorrecto');
   }
@@ -143,7 +128,7 @@ function logout() {
 function goPublic() {
   document.getElementById('pin').classList.add('hidden');
   document.getElementById('public').classList.remove('hidden');
-  loadData();
+  loadConfig();
   buildGrid();
 }
 
@@ -168,6 +153,7 @@ function buildGrid() {
   }
   document.getElementById('pubVendidos').textContent = puestos.filter(p => p).length;
   document.getElementById('pubPorcentaje').textContent = Math.round((puestos.filter(p => p).length / 50) * 100) + '%';
+  document.getElementById('pubChontico').textContent = config.chontico || '-';
 }
 
 function selectNumber(idx, btn) {
@@ -180,35 +166,11 @@ function selectNumber(idx, btn) {
   }
 }
 
-function confirmarCompra() {
-  const nombre = document.getElementById('modalNombre').value.trim();
-  const wp = document.getElementById('modalWp').value.trim();
-  if (!nombre || !wp || selectedNumbers.length === 0) {
-    alert('Completa todos los campos');
-    return;
-  }
-  selectedNumbers.forEach(i => {
-    puestos[i] = true;
-  });
-  saveData();
-  alert(`✅ ${nombre}\n${selectedNumbers.length} número(s)`);
-  cancelarCompra();
-  buildGrid();
-}
-
-function cancelarCompra() {
-  selectedNumbers = [];
-  document.getElementById('modal').classList.remove('show');
-  document.getElementById('modalNombre').value = '';
-  document.getElementById('modalWp').value = '';
-  document.querySelectorAll('.gridBtn.selected').forEach(b => b.classList.remove('selected'));
-}
-
 function updateUI() {
   document.getElementById('porcentaje').textContent = Math.round((puestos.filter(p => p).length / 50) * 100) + '%';
 }
 
-loadData();
+loadConfig();
 </script>
 
 </body>
