@@ -12,6 +12,7 @@
     h1 { color: #ffd700; font-size: 48px; text-align: center; }
     h2 { color: #ffd700; font-size: 28px; margin: 20px 0; }
     input { padding: 12px; background: #1a1a1a; border: 2px solid #0f0; color: #0f0; border-radius: 4px; width: 250px; font-size: 14px; }
+    input:disabled { background: #333; cursor: not-allowed; opacity: 0.6; }
     button { padding: 12px 24px; background: #ffd700; color: #000; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 14px; margin: 5px; }
     button:hover { background: #ffed4e; }
     .admin { background: #000; padding: 30px; max-width: 1000px; margin: 0 auto; }
@@ -32,43 +33,46 @@
     .stat-box h3 { color: #ffd700; font-size: 24px; }
     .stat-box p { color: #0f0; margin: 10px 0; }
     .nav { display: flex; justify-content: space-between; margin: 20px 0; }
+    .readonly { background: #333; color: #999; cursor: not-allowed; }
   </style>
 </head>
 <body>
+
 <div id="pin" class="pin">
   <h1>🔐 QUINIENTAZO</h1>
   <input type="password" id="pinInput" placeholder="PIN" onkeypress="if(event.key=='Enter') login()">
   <button onclick="login()">ENTRAR</button>
   <button onclick="goPublic()">Ver Pública</button>
 </div>
+
 <div id="admin" class="admin hidden">
   <div class="nav">
-    <h1>⚙️ ADMIN</h1>
+    <h1>⚙️ ADMIN (LECTURA)</h1>
     <button onclick="logout()" style="background:#ff3333">← Salir</button>
   </div>
+  <p style="color:#ffaa00; margin:10px 0;">⚠️ Config desde Terminal: nano config.txt</p>
   <div class="box">
-    <label>📷 Foto:</label>
-    <img id="capturedImg" style="display:none; width:100%; max-height:200px; border:2px solid #0f0; border-radius:4px; margin:10px 0;">
-    <button onclick="openCamera()">📷 Abrir Cámara</button>
-    <button onclick="clearPhoto()" style="background:#ff3333">✕ Limpiar</button>
-  </div>
-  <div class="box">
-    <label>Puestos Vendidos:</label>
-    <input type="number" id="vendidos" value="0" class="full">
-    <label>Porcentaje:</label>
-    <p id="porcentaje" style="color:#ffd700; font-size:20px;">0%</p>
+    <label>PIN:</label>
+    <input type="text" id="pin" class="full readonly" disabled>
   </div>
   <div class="box">
     <label>Chontico Noche (últimos 2 dígitos):</label>
-    <input type="text" id="chontico" placeholder="ej: 47" class="full" maxlength="2">
-    <label>Nombre del Ganador:</label>
-    <input type="text" id="ganador" placeholder="Nombre ganador" class="full">
+    <input type="text" id="chontico" class="full readonly" disabled>
   </div>
   <div class="box">
-    <button onclick="sortear()" style="background:#00ff00; color:#000; font-weight:bold; padding:15px; font-size:16px;">🎯 SORTEAR</button>
-    <button onclick="resetRifa()" style="background:#ff3333">🗑️ RESETEAR RIFA</button>
+    <label>Ganador:</label>
+    <input type="text" id="ganador" class="full readonly" disabled>
+  </div>
+  <div class="box">
+    <label>Estado:</label>
+    <input type="text" id="estado" class="full readonly" disabled>
+  </div>
+  <div class="box">
+    <label>Puestos Vendidos:</label>
+    <p id="porcentaje" style="color:#ffd700; font-size:20px;">0%</p>
   </div>
 </div>
+
 <div id="public" class="public hidden">
   <div class="nav">
     <h1>🦅 QUINIENTAZO</h1>
@@ -92,6 +96,7 @@
     <p>Lácteos Yoguring • 27 años</p>
   </div>
 </div>
+
 <div id="modal" class="modal">
   <div class="modal-content">
     <h2>📦 Compra #1</h2>
@@ -101,49 +106,70 @@
     <input type="text" id="modalWp" placeholder="Número">
     <button onclick="confirmarCompra()">✓ CONFIRMAR</button>
     <button onclick="cancelarCompra()" style="background:#ff3333">✕ CANCELAR</button>
-    <button onclick="copiarNumeros()" style="background:#0f0;color:#000">📋 Copiar</button>
   </div>
 </div>
+
 <script>
-const PIN = '1234';
-let config = { vendidos: 0, chontico: '', ganador: '' };
+let config = { PIN: '8682', CHONTICO: '', GANADOR: '', ESTADO: 'INICIO' };
 let puestos = Array(50).fill(false);
 let selectedNumbers = [];
+
+async function loadConfig() {
+  try {
+    const response = await fetch('config.txt');
+    const text = await response.text();
+    const lines = text.split('\n');
+    lines.forEach(line => {
+      const [key, value] = line.split('=');
+      if (key && value) config[key.trim()] = value.trim();
+    });
+  } catch (e) {
+    console.log('Config.txt no encontrado, usando defaults');
+  }
+  loadData();
+}
+
 function loadData() {
-  const saved = localStorage.getItem('q');
-  if (saved) config = JSON.parse(saved);
-  const savedPuestos = localStorage.getItem('p');
-  if (savedPuestos) puestos = JSON.parse(savedPuestos);
+  const saved = localStorage.getItem('p');
+  if (saved) puestos = JSON.parse(saved);
   updateUI();
 }
+
 function saveData() {
-  localStorage.setItem('q', JSON.stringify(config));
   localStorage.setItem('p', JSON.stringify(puestos));
 }
+
 function login() {
-  if (document.getElementById('pinInput').value === PIN) {
+  if (document.getElementById('pinInput').value === config.PIN) {
     document.getElementById('pin').classList.add('hidden');
     document.getElementById('admin').classList.remove('hidden');
-    loadData();
+    document.getElementById('pin').value = config.PIN;
+    document.getElementById('chontico').value = config.CHONTICO || '-';
+    document.getElementById('ganador').value = config.GANADOR || '-';
+    document.getElementById('estado').value = config.ESTADO || '-';
   } else {
     alert('PIN incorrecto');
   }
 }
+
 function logout() {
   document.getElementById('admin').classList.add('hidden');
   document.getElementById('pin').classList.remove('hidden');
   document.getElementById('pinInput').value = '';
 }
+
 function goPublic() {
   document.getElementById('pin').classList.add('hidden');
   document.getElementById('public').classList.remove('hidden');
   loadData();
   buildGrid();
 }
+
 function goBack() {
   document.getElementById('public').classList.add('hidden');
   document.getElementById('pin').classList.remove('hidden');
 }
+
 function buildGrid() {
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
@@ -158,10 +184,11 @@ function buildGrid() {
     }
     grid.appendChild(btn);
   }
-  document.getElementById('pubVendidos').textContent = config.vendidos;
-  document.getElementById('pubPorcentaje').textContent = Math.round((config.vendidos / 50) * 100) + '%';
-  document.getElementById('pubChontico').textContent = config.chontico || '-';
+  document.getElementById('pubVendidos').textContent = puestos.filter(p => p).length;
+  document.getElementById('pubPorcentaje').textContent = Math.round((puestos.filter(p => p).length / 50) * 100) + '%';
+  document.getElementById('pubChontico').textContent = config.CHONTICO || '-';
 }
+
 function selectNumber(idx, btn) {
   if (selectedNumbers.includes(idx)) {
     selectedNumbers = selectedNumbers.filter(i => i !== idx);
@@ -171,6 +198,7 @@ function selectNumber(idx, btn) {
     btn.classList.add('selected');
   }
 }
+
 function confirmarCompra() {
   const nombre = document.getElementById('modalNombre').value.trim();
   const wp = document.getElementById('modalWp').value.trim();
@@ -180,13 +208,13 @@ function confirmarCompra() {
   }
   selectedNumbers.forEach(i => {
     puestos[i] = true;
-    config.vendidos++;
   });
   saveData();
-  alert(`✅ Pedido confirmado para ${nombre}\n${selectedNumbers.length} número(s) comprado(s)`);
+  alert(`✅ ${nombre}\n${selectedNumbers.length} número(s)`);
   cancelarCompra();
   buildGrid();
 }
+
 function cancelarCompra() {
   selectedNumbers = [];
   document.getElementById('modal').classList.remove('show');
@@ -194,57 +222,13 @@ function cancelarCompra() {
   document.getElementById('modalWp').value = '';
   document.querySelectorAll('.gridBtn.selected').forEach(b => b.classList.remove('selected'));
 }
-function copiarNumeros() {
-  const nums = selectedNumbers.map(i => String(i * 2).padStart(2, '0') + '-' + String(i * 2 + 1).padStart(2, '0')).join(', ');
-  navigator.clipboard.writeText(nums);
-  alert('Números copiados: ' + nums);
-}
-function openCamera() {
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-    .then(stream => {
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      video.play();
-      const canvas = document.createElement('canvas');
-      const photo = () => {
-        const ctx = canvas.getContext('2d');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0);
-        document.getElementById('capturedImg').src = canvas.toDataURL();
-        document.getElementById('capturedImg').style.display = 'block';
-        stream.getTracks().forEach(t => t.stop());
-      };
-      const btn = document.createElement('button');
-      btn.textContent = '📸 Capturar';
-      btn.onclick = photo;
-      alert('Cámara abierta. Haz clic en el botón para capturar.');
-    })
-    .catch(e => alert('No se pudo acceder a la cámara: ' + e.message));
-}
-function clearPhoto() {
-  document.getElementById('capturedImg').style.display = 'none';
-  document.getElementById('capturedImg').src = '';
-}
+
 function updateUI() {
-  document.getElementById('vendidos').value = config.vendidos;
-  document.getElementById('porcentaje').textContent = Math.round((config.vendidos / 50) * 100) + '%';
-  document.getElementById('chontico').value = config.chontico;
-  document.getElementById('ganador').value = config.ganador;
+  document.getElementById('porcentaje').textContent = Math.round((puestos.filter(p => p).length / 50) * 100) + '%';
 }
-function sortear() {
-  alert('🎯 Sorteo realizado!');
-}
-function resetRifa() {
-  if (confirm('¿Seguro? Se borrará TODO.')) {
-    config = { vendidos: 0, chontico: '', ganador: '' };
-    puestos = Array(50).fill(false);
-    saveData();
-    updateUI();
-    alert('✅ Rifa reseteada');
-  }
-}
-loadData();
+
+loadConfig();
 </script>
+
 </body>
 </html>
