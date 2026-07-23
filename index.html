@@ -53,7 +53,7 @@
   <p style="color:#ffaa00; margin:10px 0;">⚠️ Config desde Terminal: nano config.txt</p>
   <div class="box">
     <label>PIN:</label>
-    <input type="text" id="pin" class="full readonly" disabled>
+    <input type="text" id="pinView" class="full readonly" disabled value="1234">
   </div>
   <div class="box">
     <label>Chontico Noche (últimos 2 dígitos):</label>
@@ -110,24 +110,9 @@
 </div>
 
 <script>
-let config = { PIN: '8682', CHONTICO: '', GANADOR: '', ESTADO: 'INICIO' };
+const PIN = '1234';
 let puestos = Array(50).fill(false);
 let selectedNumbers = [];
-
-async function loadConfig() {
-  try {
-    const response = await fetch('config.txt');
-    const text = await response.text();
-    const lines = text.split('\n');
-    lines.forEach(line => {
-      const [key, value] = line.split('=');
-      if (key && value) config[key.trim()] = value.trim();
-    });
-  } catch (e) {
-    console.log('Config.txt no encontrado, usando defaults');
-  }
-  loadData();
-}
 
 function loadData() {
   const saved = localStorage.getItem('p');
@@ -140,13 +125,10 @@ function saveData() {
 }
 
 function login() {
-  if (document.getElementById('pinInput').value === config.PIN) {
+  if (document.getElementById('pinInput').value === PIN) {
     document.getElementById('pin').classList.add('hidden');
     document.getElementById('admin').classList.remove('hidden');
-    document.getElementById('pin').value = config.PIN;
-    document.getElementById('chontico').value = config.CHONTICO || '-';
-    document.getElementById('ganador').value = config.GANADOR || '-';
-    document.getElementById('estado').value = config.ESTADO || '-';
+    loadData();
   } else {
     alert('PIN incorrecto');
   }
@@ -186,7 +168,6 @@ function buildGrid() {
   }
   document.getElementById('pubVendidos').textContent = puestos.filter(p => p).length;
   document.getElementById('pubPorcentaje').textContent = Math.round((puestos.filter(p => p).length / 50) * 100) + '%';
-  document.getElementById('pubChontico').textContent = config.CHONTICO || '-';
 }
 
 function selectNumber(idx, btn) {
@@ -227,7 +208,7 @@ function updateUI() {
   document.getElementById('porcentaje').textContent = Math.round((puestos.filter(p => p).length / 50) * 100) + '%';
 }
 
-loadConfig();
+loadData();
 </script>
 
 </body>
