@@ -10,6 +10,7 @@
     .hidden { display: none !important; }
     .pin { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 20px; }
     h1 { color: #ffd700; font-size: 48px; text-align: center; }
+    h2 { color: #ffd700; font-size: 28px; margin: 20px 0; }
     input { padding: 12px; background: #1a1a1a; border: 2px solid #0f0; color: #0f0; border-radius: 4px; width: 250px; font-size: 14px; }
     button { padding: 12px 24px; background: #ffd700; color: #000; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 14px; margin: 5px; }
     button:hover { background: #ffed4e; }
@@ -27,38 +28,70 @@
     .stat-box h3 { color: #ffd700; font-size: 24px; }
     .stat-box p { color: #0f0; margin: 10px 0; }
     .nav { display: flex; justify-content: space-between; margin: 20px 0; }
+    img.foto { max-width: 100%; max-height: 250px; border: 2px solid #0f0; border-radius: 4px; margin: 10px 0; }
+    .fotoPreview { max-width: 100%; max-height: 200px; border: 2px solid #0f0; margin: 10px 0; display: none; }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); }
+    .modal.show { display: flex; align-items: center; justify-content: center; }
+    .modal-content { background: #1a1a1a; border: 2px solid #0f0; padding: 30px; border-radius: 8px; max-width: 500px; text-align: center; color: #0f0; }
   </style>
 </head>
 <body>
+
 <div id="pin" class="pin">
   <h1>🔐 QUINIENTAZO</h1>
   <input type="password" id="pinInput" placeholder="PIN" onkeypress="if(event.key=='Enter') login()">
   <button onclick="login()">ENTRAR</button>
   <button onclick="goPublic()">Ver Pública</button>
 </div>
+
 <div id="admin" class="admin hidden">
   <div class="nav">
     <h1>⚙️ ADMIN</h1>
     <button onclick="logout()" style="background:#ff3333">← Salir</button>
   </div>
+
+  <div class="box">
+    <label>📷 Foto (Cámara):</label>
+    <button onclick="tomarFoto()">📷 Cámara</button>
+    <button onclick="limpiarFoto()" style="background:#ff3333">Limpiar</button>
+  </div>
+
+  <div class="box">
+    <label>🔗 URL Foto:</label>
+    <input type="text" id="urlFoto" class="full" placeholder="https://...">
+    <button onclick="cargarURL()">Cargar URL</button>
+  </div>
+
+  <div class="box">
+    <img id="fotoPreview" class="fotoPreview">
+  </div>
+
   <div class="box">
     <label>Chontico Noche:</label>
     <input type="text" id="chontico" class="full" maxlength="4" oninput="guardar()">
   </div>
+
   <div class="box">
     <label>Ganador:</label>
     <input type="text" id="ganador" class="full" oninput="guardar()">
   </div>
+
   <div class="box">
     <label>Puestos Vendidos:</label>
     <p id="porcentaje" style="color:#ffd700; font-size:20px;">0%</p>
   </div>
 </div>
+
 <div id="public" class="public hidden">
   <div class="nav">
     <h1>🦅 QUINIENTAZO</h1>
     <button onclick="goBack()" style="background:#ffd700">← Atrás</button>
   </div>
+
+  <div style="text-align:center;">
+    <img id="fotoPublica" class="foto" style="display:none;">
+  </div>
+
   <div class="stats">
     <div class="stat-box">
       <h3>Puestos</h3>
@@ -70,26 +103,89 @@
       <p id="pubChontico">-</p>
     </div>
   </div>
+
   <h2>Elige tus Números</h2>
   <div class="grid" id="grid"></div>
 </div>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <h2>📦 Compra</h2>
+    <label>Tu nombre:</label>
+    <input type="text" id="modalNombre" placeholder="Nombre">
+    <label>Tu WhatsApp:</label>
+    <input type="text" id="modalWp" placeholder="Número">
+    <button onclick="confirmarCompra()">✓ CONFIRMAR</button>
+    <button onclick="cancelarCompra()" style="background:#ff3333">✕ CANCELAR</button>
+  </div>
+</div>
+
 <script>
 const PIN = '8682';
-let datos = { chontico: '', ganador: '' };
+let datos = { chontico: '', ganador: '', foto: '' };
 let puestos = Array(50).fill(false);
 let numeros = [];
+
 function guardar() {
   datos.chontico = document.getElementById('chontico').value;
   datos.ganador = document.getElementById('ganador').value;
   localStorage.setItem('quinientazo', JSON.stringify(datos));
   localStorage.setItem('puestos', JSON.stringify(puestos));
 }
+
 function cargar() {
   const saved = localStorage.getItem('quinientazo');
   if (saved) datos = JSON.parse(saved);
   const savedPuestos = localStorage.getItem('puestos');
   if (savedPuestos) puestos = JSON.parse(savedPuestos);
 }
+
+function tomarFoto() {
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(stream => {
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.play();
+      const btn = document.createElement('button');
+      btn.textContent = 'Capturar';
+      btn.style.padding = '20px';
+      document.body.appendChild(btn);
+      btn.onclick = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+        datos.foto = canvas.toDataURL('image/jpeg');
+        guardar();
+        document.getElementById('fotoPreview').src = datos.foto;
+        document.getElementById('fotoPreview').style.display = 'block';
+        stream.getTracks().forEach(t => t.stop());
+        btn.remove();
+        alert('Foto capturada');
+      };
+    })
+    .catch(e => alert('Error cámara: ' + e.message));
+}
+
+function cargarURL() {
+  const url = document.getElementById('urlFoto').value.trim();
+  if (url) {
+    datos.foto = url;
+    guardar();
+    document.getElementById('fotoPreview').src = url;
+    document.getElementById('fotoPreview').style.display = 'block';
+    alert('URL guardada');
+  }
+}
+
+function limpiarFoto() {
+  datos.foto = '';
+  document.getElementById('urlFoto').value = '';
+  document.getElementById('fotoPreview').style.display = 'none';
+  guardar();
+}
+
 function login() {
   if (document.getElementById('pinInput').value === PIN) {
     document.getElementById('pin').classList.add('hidden');
@@ -97,26 +193,38 @@ function login() {
     cargar();
     document.getElementById('chontico').value = datos.chontico;
     document.getElementById('ganador').value = datos.ganador;
+    if (datos.foto) {
+      document.getElementById('fotoPreview').src = datos.foto;
+      document.getElementById('fotoPreview').style.display = 'block';
+    }
     document.getElementById('porcentaje').textContent = Math.round((puestos.filter(p => p).length / 50) * 100) + '%';
   } else {
     alert('PIN incorrecto');
   }
 }
+
 function logout() {
   document.getElementById('admin').classList.add('hidden');
   document.getElementById('pin').classList.remove('hidden');
   document.getElementById('pinInput').value = '';
 }
+
 function goPublic() {
   document.getElementById('pin').classList.add('hidden');
   document.getElementById('public').classList.remove('hidden');
   cargar();
+  if (datos.foto) {
+    document.getElementById('fotoPublica').src = datos.foto;
+    document.getElementById('fotoPublica').style.display = 'block';
+  }
   construirGrilla();
 }
+
 function goBack() {
   document.getElementById('public').classList.add('hidden');
   document.getElementById('pin').classList.remove('hidden');
 }
+
 function construirGrilla() {
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
@@ -135,6 +243,7 @@ function construirGrilla() {
   document.getElementById('pubPorcentaje').textContent = Math.round((puestos.filter(p => p).length / 50) * 100) + '%';
   document.getElementById('pubChontico').textContent = datos.chontico || '-';
 }
+
 function seleccionar(idx, btn) {
   if (numeros.includes(idx)) {
     numeros = numeros.filter(i => i !== idx);
@@ -144,7 +253,9 @@ function seleccionar(idx, btn) {
     btn.classList.add('selected');
   }
 }
+
 cargar();
 </script>
+
 </body>
 </html>
