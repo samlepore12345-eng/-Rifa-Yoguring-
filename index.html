@@ -30,9 +30,11 @@
     .nav { display: flex; justify-content: space-between; margin: 20px 0; }
     img.foto { max-width: 100%; max-height: 250px; border: 2px solid #0f0; border-radius: 4px; margin: 10px 0; }
     .fotoPreview { max-width: 100%; max-height: 200px; border: 2px solid #0f0; margin: 10px 0; display: none; }
-    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); }
     .modal.show { display: flex; align-items: center; justify-content: center; }
     .modal-content { background: #1a1a1a; border: 2px solid #0f0; padding: 30px; border-radius: 8px; max-width: 500px; text-align: center; color: #0f0; }
+    .modal-content input { margin: 10px 0; width: 100%; }
+    .ticket { background: #0f0; color: #000; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: left; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -80,6 +82,10 @@
     <label>Puestos Vendidos:</label>
     <p id="porcentaje" style="color:#ffd700; font-size:20px;">0%</p>
   </div>
+
+  <div class="box">
+    <button onclick="limpiarTodo()" style="background:#ff3333; width: 100%;">🗑️ RESETEAR RIFA</button>
+  </div>
 </div>
 
 <div id="public" class="public hidden">
@@ -110,9 +116,10 @@
 
 <div id="modal" class="modal">
   <div class="modal-content">
-    <h2>📦 Compra</h2>
+    <h2>📦 COMPRA RIFA</h2>
+    <p id="modalNumeros" style="font-size: 18px; margin: 10px 0; color: #ffd700;"></p>
     <label>Tu nombre:</label>
-    <input type="text" id="modalNombre" placeholder="Nombre">
+    <input type="text" id="modalNombre" placeholder="Nombre completo">
     <label>Tu WhatsApp:</label>
     <input type="text" id="modalWp" placeholder="Número">
     <button onclick="confirmarCompra()">✓ CONFIRMAR</button>
@@ -125,12 +132,14 @@ const PIN = '8682';
 let datos = { chontico: '', ganador: '', foto: '' };
 let puestos = Array(50).fill(false);
 let numeros = [];
+let tickets = [];
 
 function guardar() {
   datos.chontico = document.getElementById('chontico').value;
   datos.ganador = document.getElementById('ganador').value;
   localStorage.setItem('quinientazo', JSON.stringify(datos));
   localStorage.setItem('puestos', JSON.stringify(puestos));
+  localStorage.setItem('tickets', JSON.stringify(tickets));
 }
 
 function cargar() {
@@ -138,6 +147,8 @@ function cargar() {
   if (saved) datos = JSON.parse(saved);
   const savedPuestos = localStorage.getItem('puestos');
   if (savedPuestos) puestos = JSON.parse(savedPuestos);
+  const savedTickets = localStorage.getItem('tickets');
+  if (savedTickets) tickets = JSON.parse(savedTickets);
 }
 
 function tomarFoto() {
@@ -184,6 +195,16 @@ function limpiarFoto() {
   document.getElementById('urlFoto').value = '';
   document.getElementById('fotoPreview').style.display = 'none';
   guardar();
+}
+
+function limpiarTodo() {
+  if (confirm('¿RESETEAR TODA LA RIFA?')) {
+    puestos = Array(50).fill(false);
+    datos = { chontico: '', ganador: '', foto: '' };
+    tickets = [];
+    guardar();
+    location.reload();
+  }
 }
 
 function login() {
@@ -253,6 +274,63 @@ function seleccionar(idx, btn) {
     btn.classList.add('selected');
   }
 }
+
+function confirmarCompra() {
+  const nombre = document.getElementById('modalNombre').value.trim();
+  const wp = document.getElementById('modalWp').value.trim();
+  
+  if (!nombre || !wp) {
+    alert('Completa todos los campos');
+    return;
+  }
+
+  if (wp.length < 10) {
+    alert('WhatsApp inválido');
+    return;
+  }
+
+  const numerosTexto = numeros.map(i => `${String(i * 2).padStart(2, '0')}-${String(i * 2 + 1).padStart(2, '0')}`).join(', ');
+  
+  numeros.forEach(i => {
+    puestos[i] = true;
+  });
+
+  const ticket = {
+    fecha: new Date().toLocaleString('es-CO'),
+    nombre: nombre,
+    whatsapp: wp,
+    numeros: numerosTexto,
+    cantidad: numeros.length
+  };
+
+  tickets.push(ticket);
+  guardar();
+
+  const ticketTexto = `🎫 TICKET QUINIENTAZO\n\n👤 ${nombre}\n📱 ${wp}\n🎯 Números: ${numerosTexto}\n📅 ${ticket.fecha}`;
+  
+  alert(`✅ COMPRA CONFIRMADA\n\n${ticketTexto}`);
+  
+  cancelarCompra();
+  construirGrilla();
+  document.getElementById('porcentaje').textContent = Math.round((puestos.filter(p => p).length / 50) * 100) + '%';
+}
+
+function cancelarCompra() {
+  numeros = [];
+  document.getElementById('modal').classList.remove('show');
+  document.getElementById('modalNombre').value = '';
+  document.getElementById('modalWp').value = '';
+  document.querySelectorAll('.gridBtn.selected').forEach(b => b.classList.remove('selected'));
+}
+
+// Cuando cliente selecciona números, muestra modal
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('gridBtn') && numeros.length > 0 && document.getElementById('public').classList.contains('hidden') === false) {
+    const numerosTexto = numeros.map(i => `${String(i * 2).padStart(2, '0')}-${String(i * 2 + 1).padStart(2, '0')}`).join(', ');
+    document.getElementById('modalNumeros').textContent = `Números: ${numerosTexto}`;
+    document.getElementById('modal').classList.add('show');
+  }
+});
 
 cargar();
 </script>
