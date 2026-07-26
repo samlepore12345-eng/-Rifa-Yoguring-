@@ -10,6 +10,7 @@
     .hidden { display: none !important; }
     .pin { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 20px; }
     h1 { color: #ffd700; font-size: 48px; text-align: center; }
+    h2 { color: #ffd700; font-size: 28px; margin: 20px 0; }
     input { padding: 12px; background: #1a1a1a; border: 2px solid #0f0; color: #0f0; border-radius: 4px; width: 250px; font-size: 14px; }
     button { padding: 12px 24px; background: #ffd700; color: #000; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 14px; margin: 5px; }
     button:hover { background: #ffed4e; }
@@ -27,7 +28,12 @@
     .stat-box h3 { color: #ffd700; font-size: 24px; }
     .stat-box p { color: #0f0; margin: 10px 0; }
     .nav { display: flex; justify-content: space-between; margin: 20px 0; }
+    .timer { font-size: 32px; color: #ff0000; font-weight: bold; text-align: center; padding: 20px; background: #1a1a1a; border: 3px solid #ff0000; border-radius: 8px; margin: 20px 0; }
+    .timer.abierta { color: #0f0; border-color: #0f0; }
     img.foto { max-width: 100%; max-height: 250px; border: 2px solid #0f0; border-radius: 4px; margin: 10px 0; }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); }
+    .modal.show { display: flex; align-items: center; justify-content: center; }
+    .modal-content { background: #1a1a1a; border: 2px solid #0f0; padding: 30px; border-radius: 8px; max-width: 500px; text-align: center; color: #0f0; }
   </style>
 </head>
 <body>
@@ -44,31 +50,16 @@
     <h1>⚙️ ADMIN</h1>
     <button onclick="logout()" style="background:#ff3333">← Salir</button>
   </div>
-
   <div class="box">
-    <label>📷 Foto (Cámara):</label>
-    <button onclick="tomarFoto()">📷 Cámara</button>
-    <button onclick="limpiarFoto()" style="background:#ff3333">Limpiar</button>
+    <label>Chontico Noche:</label>
+    <input type="text" id="chontico" class="full" maxlength="4" oninput="guardar()">
   </div>
-
-  <div class="box">
-    <label>🔗 URL Foto:</label>
-    <input type="text" id="urlFoto" class="full" placeholder="https://...">
-    <button onclick="cargarURL()">Cargar URL</button>
-  </div>
-
-  <div class="box">
-    <label>Chontico:</label>
-    <input type="text" id="chontico" class="full" maxlength="2" oninput="guardar()">
-  </div>
-
   <div class="box">
     <label>Ganador:</label>
     <input type="text" id="ganador" class="full" oninput="guardar()">
   </div>
-
   <div class="box">
-    <label>Puestos:</label>
+    <label>Puestos Vendidos:</label>
     <p id="porcentaje" style="color:#ffd700; font-size:20px;">0%</p>
   </div>
 </div>
@@ -78,11 +69,7 @@
     <h1>🦅 QUINIENTAZO</h1>
     <button onclick="goBack()" style="background:#ffd700">← Atrás</button>
   </div>
-
-  <div style="text-align:center;">
-    <img id="fotoPublica" class="foto" style="display:none;">
-  </div>
-
+  <div id="timerPublic" class="timer abierta">⏱️ RIFA ABIERTA</div>
   <div class="stats">
     <div class="stat-box">
       <h3>Puestos</h3>
@@ -94,14 +81,13 @@
       <p id="pubChontico">-</p>
     </div>
   </div>
-
   <h2>Elige tus Números</h2>
   <div class="grid" id="grid"></div>
 </div>
 
 <script>
-const PIN = '1234';
-let datos = { chontico: '', ganador: '', foto: '' };
+const PIN = '8682';
+let datos = { chontico: '', ganador: '' };
 let puestos = Array(50).fill(false);
 let numeros = [];
 
@@ -117,47 +103,6 @@ function cargar() {
   if (saved) datos = JSON.parse(saved);
   const savedPuestos = localStorage.getItem('puestos');
   if (savedPuestos) puestos = JSON.parse(savedPuestos);
-}
-
-function tomarFoto() {
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-    .then(stream => {
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      video.play();
-      const btn = document.createElement('button');
-      btn.textContent = 'Capturar';
-      btn.style.padding = '20px';
-      document.body.appendChild(btn);
-      btn.onclick = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0);
-        datos.foto = canvas.toDataURL('image/jpeg');
-        guardar();
-        stream.getTracks().forEach(t => t.stop());
-        btn.remove();
-        alert('Foto capturada');
-      };
-    })
-    .catch(e => alert('Error cámara: ' + e.message));
-}
-
-function cargarURL() {
-  const url = document.getElementById('urlFoto').value.trim();
-  if (url) {
-    datos.foto = url;
-    guardar();
-    alert('URL guardada');
-  }
-}
-
-function limpiarFoto() {
-  datos.foto = '';
-  document.getElementById('urlFoto').value = '';
-  guardar();
 }
 
 function login() {
@@ -183,10 +128,6 @@ function goPublic() {
   document.getElementById('pin').classList.add('hidden');
   document.getElementById('public').classList.remove('hidden');
   cargar();
-  if (datos.foto) {
-    document.getElementById('fotoPublica').src = datos.foto;
-    document.getElementById('fotoPublica').style.display = 'block';
-  }
   construirGrilla();
 }
 
