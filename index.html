@@ -10,7 +10,6 @@
     .hidden { display: none !important; }
     .pin { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 20px; }
     h1 { color: #ffd700; font-size: 48px; text-align: center; }
-    h2 { color: #ffd700; font-size: 28px; margin: 20px 0; }
     input { padding: 12px; background: #1a1a1a; border: 2px solid #0f0; color: #0f0; border-radius: 4px; width: 250px; font-size: 14px; }
     button { padding: 12px 24px; background: #ffd700; color: #000; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 14px; margin: 5px; }
     button:hover { background: #ffed4e; }
@@ -28,23 +27,15 @@
     .stat-box h3 { color: #ffd700; font-size: 24px; }
     .stat-box p { color: #0f0; margin: 10px 0; }
     .nav { display: flex; justify-content: space-between; margin: 20px 0; }
-    .timer { font-size: 32px; color: #ff0000; font-weight: bold; text-align: center; padding: 20px; background: #1a1a1a; border: 3px solid #ff0000; border-radius: 8px; margin: 20px 0; }
-    .timer.abierta { color: #0f0; border-color: #0f0; }
-    img.foto { max-width: 100%; max-height: 250px; border: 2px solid #0f0; border-radius: 4px; margin: 10px 0; }
-    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); }
-    .modal.show { display: flex; align-items: center; justify-content: center; }
-    .modal-content { background: #1a1a1a; border: 2px solid #0f0; padding: 30px; border-radius: 8px; max-width: 500px; text-align: center; color: #0f0; }
   </style>
 </head>
 <body>
-
 <div id="pin" class="pin">
   <h1>🔐 QUINIENTAZO</h1>
   <input type="password" id="pinInput" placeholder="PIN" onkeypress="if(event.key=='Enter') login()">
   <button onclick="login()">ENTRAR</button>
   <button onclick="goPublic()">Ver Pública</button>
 </div>
-
 <div id="admin" class="admin hidden">
   <div class="nav">
     <h1>⚙️ ADMIN</h1>
@@ -63,13 +54,11 @@
     <p id="porcentaje" style="color:#ffd700; font-size:20px;">0%</p>
   </div>
 </div>
-
 <div id="public" class="public hidden">
   <div class="nav">
     <h1>🦅 QUINIENTAZO</h1>
     <button onclick="goBack()" style="background:#ffd700">← Atrás</button>
   </div>
-  <div id="timerPublic" class="timer abierta">⏱️ RIFA ABIERTA</div>
   <div class="stats">
     <div class="stat-box">
       <h3>Puestos</h3>
@@ -84,27 +73,23 @@
   <h2>Elige tus Números</h2>
   <div class="grid" id="grid"></div>
 </div>
-
 <script>
 const PIN = '8682';
 let datos = { chontico: '', ganador: '' };
 let puestos = Array(50).fill(false);
 let numeros = [];
-
 function guardar() {
   datos.chontico = document.getElementById('chontico').value;
   datos.ganador = document.getElementById('ganador').value;
   localStorage.setItem('quinientazo', JSON.stringify(datos));
   localStorage.setItem('puestos', JSON.stringify(puestos));
 }
-
 function cargar() {
   const saved = localStorage.getItem('quinientazo');
   if (saved) datos = JSON.parse(saved);
   const savedPuestos = localStorage.getItem('puestos');
   if (savedPuestos) puestos = JSON.parse(savedPuestos);
 }
-
 function login() {
   if (document.getElementById('pinInput').value === PIN) {
     document.getElementById('pin').classList.add('hidden');
@@ -117,25 +102,21 @@ function login() {
     alert('PIN incorrecto');
   }
 }
-
 function logout() {
   document.getElementById('admin').classList.add('hidden');
   document.getElementById('pin').classList.remove('hidden');
   document.getElementById('pinInput').value = '';
 }
-
 function goPublic() {
   document.getElementById('pin').classList.add('hidden');
   document.getElementById('public').classList.remove('hidden');
   cargar();
   construirGrilla();
 }
-
 function goBack() {
   document.getElementById('public').classList.add('hidden');
   document.getElementById('pin').classList.remove('hidden');
 }
-
 function construirGrilla() {
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
@@ -154,7 +135,6 @@ function construirGrilla() {
   document.getElementById('pubPorcentaje').textContent = Math.round((puestos.filter(p => p).length / 50) * 100) + '%';
   document.getElementById('pubChontico').textContent = datos.chontico || '-';
 }
-
 function seleccionar(idx, btn) {
   if (numeros.includes(idx)) {
     numeros = numeros.filter(i => i !== idx);
@@ -164,9 +144,7 @@ function seleccionar(idx, btn) {
     btn.classList.add('selected');
   }
 }
-
 cargar();
 </script>
-
 </body>
 </html>
