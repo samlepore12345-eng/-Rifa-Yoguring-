@@ -1,261 +1,625 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QUINIENTAZO</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0a0a0a; color: #0f0; font-family: Arial, sans-serif; }
-    .hidden { display: none !important; }
-    .pin { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 20px; }
-    h1 { color: #ffd700; font-size: 48px; text-align: center; }
-    h2 { color: #ffd700; font-size: 28px; margin: 20px 0; }
-    input { padding: 12px; background: #1a1a1a; border: 2px solid #0f0; color: #0f0; border-radius: 4px; width: 250px; font-size: 14px; }
-    button { padding: 12px 24px; background: #ffd700; color: #000; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 14px; margin: 5px; }
-    button:hover { background: #ffed4e; }
-    .admin { background: #000; padding: 30px; max-width: 1000px; margin: 0 auto; }
-    .box { background: #1a1a1a; border: 2px solid #0f0; padding: 15px; margin: 15px 0; border-radius: 4px; }
-    label { display: block; color: #0f0; font-size: 12px; margin-bottom: 8px; font-weight: bold; }
-    input.full { width: 100%; }
-    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 20px 0; }
-    .gridBtn { padding: 10px; background: #1a1a1a; border: 2px solid #0f0; color: #0f0; font-size: 12px; cursor: pointer; border-radius: 4px; font-weight: bold; }
-    .gridBtn:disabled { background: #666; color: #999; opacity: 0.5; cursor: not-allowed; }
-    .gridBtn.selected { background: #0f0; color: #000; }
-    .public { background: #000; padding: 20px; min-height: 100vh; }
-    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
-    .stat-box { background: #1a1a1a; border: 2px solid #0f0; padding: 20px; border-radius: 4px; text-align: center; }
-    .stat-box h3 { color: #ffd700; font-size: 24px; }
-    .stat-box p { color: #0f0; margin: 10px 0; }
-    .nav { display: flex; justify-content: space-between; margin: 20px 0; }
-    img.foto { max-width: 100%; max-height: 250px; border: 2px solid #0f0; border-radius: 4px; margin: 10px 0; }
-    .fotoPreview { max-width: 100%; max-height: 200px; border: 2px solid #0f0; margin: 10px 0; display: none; }
-    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); }
-    .modal.show { display: flex; align-items: center; justify-content: center; }
-    .modal-content { background: #1a1a1a; border: 2px solid #0f0; padding: 30px; border-radius: 8px; max-width: 500px; text-align: center; color: #0f0; }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>🎟️ QUINIENTAZO</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#0b0b1a 0%,#1a1a3e 100%);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:20px 10px 40px;color:#fff}
+        .app{max-width:1200px;width:100%;background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);border-radius:40px;padding:25px 20px 35px;box-shadow:0 25px 50px rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.08)}
+        .admin-toggle{display:flex;justify-content:flex-end;margin-bottom:12px}
+        .admin-toggle button{background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.3);color:#ffd966;padding:8px 20px;border-radius:40px;font-weight:600;font-size:.9rem;cursor:pointer;transition:.2s}
+        .admin-toggle button:hover{background:rgba(255,215,0,0.25);border-color:#ffd966;transform:scale(1.02)}
+        .admin-panel{background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);border-radius:28px;padding:20px 22px 28px;margin-bottom:25px;border:1px solid rgba(255,215,0,0.15);display:none}
+        .admin-panel.open{display:block}
+        .admin-panel h2{font-size:1.3rem;font-weight:700;color:#ffd966;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+        .admin-panel h2::before{content:"🔐";font-size:1.4rem}
+        .admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px 20px;margin-bottom:22px}
+        .admin-group{display:flex;flex-direction:column;gap:6px}
+        .admin-group label{font-size:.8rem;font-weight:600;text-transform:uppercase;color:#b0b0d0}
+        .admin-group input,.admin-group textarea{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:12px 16px;color:#fff;font-size:.95rem;transition:.2s;font-family:inherit;width:100%}
+        .admin-group input:focus,.admin-group textarea:focus{outline:none;border-color:#ffd966;background:rgba(255,255,255,0.10);box-shadow:0 0 0 3px rgba(255,215,0,0.15)}
+        .admin-group textarea{resize:vertical;min-height:70px}
+        .admin-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}
+        .btn{border:none;border-radius:40px;padding:12px 28px;font-weight:700;font-size:.95rem;cursor:pointer;transition:.2s;background:rgba(255,255,255,0.06);color:#fff;border:1px solid rgba(255,255,255,0.08);display:inline-flex;align-items:center;gap:8px}
+        .btn-primary{background:linear-gradient(135deg,#f7b731,#f5a623);color:#0b0b1a;border:none;font-weight:800;box-shadow:0 8px 20px rgba(245,166,35,0.25)}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(245,166,35,0.35)}
+        .btn-danger{background:rgba(255,70,70,0.15);border:1px solid rgba(255,70,70,0.25);color:#ff6b6b}
+        .btn-danger:hover{background:rgba(255,70,70,0.25)}
+        .btn-borrar{background:rgba(255,0,0,0.3);border:1px solid rgba(255,0,0,0.5);color:#ff4444}
+        .btn-borrar:hover{background:rgba(255,0,0,0.5)}
+        .header-info{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:20px;gap:10px}
+        .header-info .lottery-badge{background:rgba(255,215,0,0.10);border:1px solid rgba(255,215,0,0.15);border-radius:40px;padding:6px 18px;font-size:.8rem;font-weight:600;color:#ffd966}
+        .header-info .prize-name{font-size:1.6rem;font-weight:800;background:linear-gradient(135deg,#fff,#ffd966);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .header-info .prize-value{font-size:1.2rem;font-weight:700;color:#a0f0c0}
+        .numbers-section{margin-top:28px}
+        .numbers-section h3{font-size:1.1rem;font-weight:600;color:#c0c0e0;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+        .numbers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:12px}
+        .number-item{aspect-ratio:1/1;background:rgba(255,255,255,0.05);border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;cursor:pointer;transition:.15s;border:1px solid rgba(255,255,255,0.06);user-select:none;color:#ddd}
+        .number-item:hover{background:rgba(255,215,0,0.10);transform:scale(1.04);border-color:rgba(255,215,0,0.2)}
+        .number-item.sold{background:rgba(255,70,70,0.15);border-color:rgba(255,70,70,0.2);color:#ff6b6b;text-decoration:line-through;cursor:not-allowed;opacity:.5}
+        .number-item.selected{background:rgba(255,215,0,0.20);border-color:#ffd966;color:#ffd966;box-shadow:0 0 20px rgba(255,215,0,0.10)}
+        .whatsapp-area{margin-top:28px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;background:rgba(0,0,0,0.25);border-radius:30px;padding:16px 22px;border:1px solid rgba(255,255,255,0.05)}
+        .whatsapp-area .selected-info{font-size:.95rem;color:#c0c0e0}
+        .whatsapp-area .selected-info strong{color:#ffd966}
+        .btn-whatsapp{background:#25d366;border:none;border-radius:40px;padding:14px 32px;font-weight:700;font-size:1rem;color:#fff;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(37,211,102,0.25)}
+        .btn-whatsapp:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(37,211,102,0.35)}
+        .btn-whatsapp:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+        .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);padding:14px 28px;border-radius:60px;border:1px solid rgba(255,255,255,0.08);color:#fff;font-weight:500;font-size:.95rem;opacity:0;transition:all .4s cubic-bezier(.22,1,.36,1);z-index:999;pointer-events:none;text-align:center;max-width:90%}
+        .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+        .pantalla-principal{display:flex;flex-direction:column;gap:16px;padding:10px 0}
+        .seccion-logo{height:80px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.03);border-radius:20px;border:1px dashed rgba(255,255,255,0.08)}
+        .logo-container{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+        .logo-container img{max-height:70px;max-width:100%;object-fit:contain;border-radius:12px}
+        .logo-placeholder{display:flex;flex-direction:column;align-items:center;color:#666;font-size:.7rem}
+        .logo-placeholder span{font-size:2rem}
+        .seccion-articulo{flex:3;min-height:300px;background:rgba(255,255,255,0.03);border-radius:28px;border:1px solid rgba(255,255,255,0.06);overflow:hidden;display:flex;flex-direction:column}
+        .articulo-container{display:flex;flex-direction:column;height:100%;padding:16px}
+        .articulo-imagen{flex:1;min-height:200px;background:rgba(0,0,0,0.3);border-radius:20px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+        .articulo-imagen img{width:100%;height:100%;object-fit:cover}
+        .imagen-placeholder{display:flex;flex-direction:column;align-items:center;color:#555}
+        .imagen-placeholder span{font-size:3rem}
+        .imagen-placeholder small{font-size:.8rem;margin-top:8px}
+        .articulo-info{padding:14px 4px 4px}
+        .articulo-info h2{font-size:1.3rem;font-weight:700;color:#fff;margin:0 0 4px 0}
+        .articulo-descripcion{font-size:.85rem;color:#8888aa;margin:0}
+        .seccion-info{background:rgba(0,0,0,0.4);border-radius:24px;padding:16px 18px;border:1px solid rgba(255,255,255,0.06)}
+        .info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+        .info-item{display:flex;flex-direction:column;align-items:center;text-align:center}
+        .info-label{font-size:.6rem;text-transform:uppercase;color:#666;letter-spacing:.5px}
+        .info-value{font-size:.9rem;font-weight:600;color:#ffd966;margin-top:2px}
+        .info-botones{display:flex;gap:10px;margin-bottom:12px}
+        .btn-publico{flex:1;background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;border:none;padding:12px;border-radius:40px;font-weight:700;font-size:.9rem;cursor:pointer;transition:.2s}
+        .btn-publico:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(46,204,113,0.3)}
+        .btn-admin{flex:1;background:rgba(255,215,0,0.15);color:#ffd966;border:1px solid rgba(255,215,0,0.2);padding:12px;border-radius:40px;font-weight:700;font-size:.9rem;cursor:pointer;transition:.2s}
+        .btn-admin:hover{background:rgba(255,215,0,0.25)}
+        .info-clave{display:flex;gap:8px;align-items:center}
+        .info-clave input{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:40px;padding:10px 16px;color:#fff;font-size:.9rem;font-family:inherit;text-align:center;letter-spacing:4px}
+        .info-clave input:focus{outline:none;border-color:#ffd966}
+        .btn-clave{background:#ffd966;color:#0b0b1a;border:none;padding:10px 20px;border-radius:40px;font-weight:700;cursor:pointer;transition:.2s}
+        .btn-clave:hover{transform:scale(1.05)}
+        .p3-config-box{background:rgba(0,0,0,0.3);border-radius:20px;padding:16px 18px;margin-bottom:20px;border:1px solid rgba(255,215,0,0.08)}
+        .p3-config-box h3{font-size:1rem;color:#ffd966;margin-bottom:12px}
+        .p3-config-box input,.p3-config-box textarea{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px 14px;color:#fff;font-size:.9rem;font-family:inherit;margin-bottom:8px}
+        .p3-config-box input:focus,.p3-config-box textarea:focus{outline:none;border-color:#ffd966}
+        .p3-config-box textarea{resize:vertical;min-height:60px}
+        .btn-imagen-container{display:flex;gap:10px;margin:8px 0 4px 0;flex-wrap:wrap}
+        .btn-imagen{padding:8px 16px;font-size:.8rem;border-radius:40px;cursor:pointer;transition:.2s;border:none;font-weight:600}
+        .btn-subir{background:rgba(52,152,219,0.2);border:1px solid rgba(52,152,219,0.3);color:#5dade2}
+        .btn-subir:hover{background:rgba(52,152,219,0.35)}
+        .btn-camara{background:rgba(46,204,113,0.2);border:1px solid rgba(46,204,113,0.3);color:#55efc4}
+        .btn-camara:hover{background:rgba(46,204,113,0.35)}
+        .ayuda-imagen{display:block;color:#666;font-size:.7rem;margin-top:4px}
+        @media(max-width:600px){.app{padding:16px 12px 24px;border-radius:24px}.header-info .prize-name{font-size:1.3rem}.numbers-grid{grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:8px}.admin-grid{grid-template-columns:1fr}.whatsapp-area{flex-direction:column;align-items:stretch;text-align:center;padding:16px}.btn-whatsapp{justify-content:center}.seccion-logo{height:60px}.seccion-articulo{min-height:220px}.articulo-imagen{min-height:150px}.info-grid{grid-template-columns:repeat(3,1fr);gap:4px}.info-value{font-size:.75rem}.articulo-info h2{font-size:1.1rem}}
+    </style>
 </head>
 <body>
-
-<div id="pin" class="pin">
-  <h1>🔐 QUINIENTAZO</h1>
-  <input type="password" id="pinInput" placeholder="PIN" onkeypress="if(event.key=='Enter') login()">
-  <button onclick="login()">ENTRAR</button>
-  <button onclick="goPublic()">Ver Pública</button>
-</div>
-
-<div id="admin" class="admin hidden">
-  <div class="nav">
-    <h1>⚙️ ADMIN</h1>
-    <button onclick="logout()" style="background:#ff3333">← Salir</button>
-  </div>
-
-  <div class="box">
-    <label>📷 Foto (Cámara):</label>
-    <button onclick="tomarFoto()">📷 Cámara</button>
-    <button onclick="limpiarFoto()" style="background:#ff3333">Limpiar</button>
-  </div>
-
-  <div class="box">
-    <label>🔗 URL Foto:</label>
-    <input type="text" id="urlFoto" class="full" placeholder="https://...">
-    <button onclick="cargarURL()">Cargar URL</button>
-  </div>
-
-  <div class="box">
-    <img id="fotoPreview" class="fotoPreview">
-  </div>
-
-  <div class="box">
-    <label>Chontico Noche:</label>
-    <input type="text" id="chontico" class="full" maxlength="4" oninput="guardar()">
-  </div>
-
-  <div class="box">
-    <label>Ganador:</label>
-    <input type="text" id="ganador" class="full" oninput="guardar()">
-  </div>
-
-  <div class="box">
-    <label>Puestos Vendidos:</label>
-    <p id="porcentaje" style="color:#ffd700; font-size:20px;">0%</p>
-  </div>
-</div>
-
-<div id="public" class="public hidden">
-  <div class="nav">
-    <h1>🦅 QUINIENTAZO</h1>
-    <button onclick="goBack()" style="background:#ffd700">← Atrás</button>
-  </div>
-
-  <div style="text-align:center;">
-    <img id="fotoPublica" class="foto" style="display:none;">
-  </div>
-
-  <div class="stats">
-    <div class="stat-box">
-      <h3>Puestos</h3>
-      <p id="pubVendidos">0</p>
-      <p id="pubPorcentaje">0%</p>
+    <div id="toast" class="toast">✅ Mensaje</div>
+    <div class="app" id="app">
+        <div class="pantalla-principal">
+            <div class="seccion-logo">
+                <div class="logo-container">
+                    <img id="logoImage" src="" alt="Logo" />
+                    <div class="logo-placeholder" id="logoPlaceholder">
+                        <span>🏆</span>
+                        <small>QUINIENTAZO</small>
+                    </div>
+                </div>
+            </div>
+            <div class="seccion-articulo">
+                <div class="articulo-container">
+                    <div class="articulo-imagen">
+                        <img id="premioImagen" src="" alt="Premio" />
+                        <div class="imagen-placeholder" id="imagenPlaceholder">
+                            <span>📸</span>
+                            <small>Imagen del premio</small>
+                        </div>
+                    </div>
+                    <div class="articulo-info">
+                        <h2 id="premioNombreDisplay">PS5 Digital Edition</h2>
+                        <p class="articulo-descripcion" id="premioDescripcion">Descripción del premio</p>
+                    </div>
+                </div>
+            </div>
+            <div class="seccion-info">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">🎯 Rifa</span>
+                        <span class="info-value" id="infoRifaNombre">QUINIENTAZO</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">📅 Fecha</span>
+                        <span class="info-value" id="infoFecha">31/12/2024</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">💰 Valor</span>
+                        <span class="info-value" id="infoValor">$500.000</span>
+                    </div>
+                </div>
+                <div class="info-botones">
+                    <button class="btn btn-publico" id="btnPublico">👥 Público</button>
+                    <button class="btn btn-admin" id="btnAdmin">🔐 Administración</button>
+                </div>
+                <div class="info-clave">
+                    <input type="password" id="claveInput" placeholder="Clave" maxlength="4" />
+                    <button class="btn btn-clave" id="btnClave">✅</button>
+                </div>
+            </div>
+        </div>
+        <div class="admin-toggle">
+            <button id="adminToggleBtn">⚙️ Panel Administrador</button>
+        </div>
+        <div class="admin-panel" id="adminPanel">
+            <h2>Administración</h2>
+            <div class="p3-config-box">
+                <h3>⚙️ Configuración de la Rifa</h3>
+                <input type="text" id="cfgLogo" placeholder="URL del Logo">
+                <input type="text" id="cfgImagen" placeholder="URL de la Imagen del Premio">
+                <div class="btn-imagen-container">
+                    <input type="file" id="fileInput" accept="image/*" style="display:none;">
+                    <button type="button" class="btn-imagen btn-subir" id="btnSubirImagen">📁 Subir imagen</button>
+                    <input type="file" id="camInput" accept="image/*" capture="environment" style="display:none;">
+                    <button type="button" class="btn-imagen btn-camara" id="btnCamara">📷 Cámara</button>
+                </div>
+                <small class="ayuda-imagen">💡 Para subir al logo: haz clic en "URL del Logo" y luego en "Subir imagen"</small>
+                <input type="text" id="cfgLoteria" placeholder="Lotería">
+                <input type="date" id="cfgFecha">
+                <input type="text" id="cfgValorPremio" placeholder="Valor del Premio">
+                <input type="text" id="cfgValorPuesto" placeholder="Valor por Puesto">
+                <textarea id="cfgRegla" rows="4" placeholder="Reglas de la rifa"></textarea>
+            </div>
+            <div class="admin-grid">
+                <div class="admin-group">
+                    <label>🏷️ Nombre del premio</label>
+                    <input type="text" id="prizeNameInput" placeholder="Ej: PS5 Digital" />
+                </div>
+                <div class="admin-group">
+                    <label>💰 Valor del puesto</label>
+                    <input type="number" id="spotPriceInput" placeholder="Ej: 5000" />
+                </div>
+                <div class="admin-group">
+                    <label>🏆 Valor del premio</label>
+                    <input type="number" id="prizeValueInput" placeholder="Ej: 500000" />
+                </div>
+                <div class="admin-group">
+                    <label>🎲 Lotería</label>
+                    <input type="text" id="lotteryInput" placeholder="Ej: Lotería Concepción" />
+                </div>
+            </div>
+            <div class="admin-actions">
+                <button class="btn btn-primary" id="saveConfigBtn">💾 Guardar Configuración</button>
+                <button class="btn btn-danger" id="resetSoldBtn">🔄 Reiniciar números</button>
+                <button class="btn btn-borrar" id="borrarTodoBtn">🗑️ Borrar Todo</button>
+            </div>
+        </div>
+        <div class="header-info">
+            <span class="lottery-badge" id="lotteryDisplay">🎲 Lotería</span>
+            <span class="prize-name" id="prizeNameDisplay">Premio</span>
+            <span class="prize-value" id="prizeValueDisplay">$0</span>
+        </div>
+        <div class="numbers-section">
+            <h3>
+                <span>🔢 Elige tu número</span>
+                <span style="font-weight:400;font-size:.8rem;color:#8888aa;" id="spotsInfo">0 disponibles</span>
+            </h3>
+            <div class="numbers-grid" id="numbersGrid"></div>
+        </div>
+        <div class="whatsapp-area">
+            <div class="selected-info">
+                Seleccionados: <strong id="selectedCount">0</strong> &nbsp;·&nbsp; Total: <strong id="totalPrice">$0</strong>
+            </div>
+            <button class="btn-whatsapp" id="whatsappBtn" disabled>
+                💬 Enviar por WhatsApp
+            </button>
+        </div>
     </div>
-    <div class="stat-box">
-      <h3>Chontico</h3>
-      <p id="pubChontico">-</p>
-    </div>
-  </div>
 
-  <h2>Elige tus Números</h2>
-  <div class="grid" id="grid"></div>
-</div>
+    <script>
+        (function() {
+            'use strict';
+            const ADMIN_WA = '3019679760';
+            const adminPanel = document.getElementById('adminPanel');
+            const adminToggleBtn = document.getElementById('adminToggleBtn');
+            const prizeNameInput = document.getElementById('prizeNameInput');
+            const spotPriceInput = document.getElementById('spotPriceInput');
+            const prizeValueInput = document.getElementById('prizeValueInput');
+            const lotteryInput = document.getElementById('lotteryInput');
+            const saveConfigBtn = document.getElementById('saveConfigBtn');
+            const resetSoldBtn = document.getElementById('resetSoldBtn');
+            const borrarTodoBtn = document.getElementById('borrarTodoBtn');
+            const prizeNameDisplay = document.getElementById('prizeNameDisplay');
+            const prizeValueDisplay = document.getElementById('prizeValueDisplay');
+            const lotteryDisplay = document.getElementById('lotteryDisplay');
+            const numbersGrid = document.getElementById('numbersGrid');
+            const spotsInfo = document.getElementById('spotsInfo');
+            const selectedCount = document.getElementById('selectedCount');
+            const totalPrice = document.getElementById('totalPrice');
+            const whatsappBtn = document.getElementById('whatsappBtn');
+            const toast = document.getElementById('toast');
+            const TOTAL_NUMBERS = 100;
+            let sold = [];
+            let selected = [];
+            let config = { prizeName: 'PS5 Digital Edition', spotPrice: 5000, prizeValue: 500000, lottery: 'Lotería Concepción' };
+            let toastTimer = null;
 
-<div id="modal" class="modal">
-  <div class="modal-content">
-    <h2>📦 Compra</h2>
-    <label>Tu nombre:</label>
-    <input type="text" id="modalNombre" placeholder="Nombre">
-    <label>Tu WhatsApp:</label>
-    <input type="text" id="modalWp" placeholder="Número">
-    <button onclick="confirmarCompra()">✓ CONFIRMAR</button>
-    <button onclick="cancelarCompra()" style="background:#ff3333">✕ CANCELAR</button>
-  </div>
-</div>
+            function showToast(msg, duration = 3000) {
+                if (toastTimer) { clearTimeout(toastTimer);
+                    toast.classList.remove('show') }
+                toast.textContent = msg;
+                toast.classList.add('show');
+                toastTimer = setTimeout(() => { toast.classList.remove('show');
+                    toastTimer = null }, duration);
+            }
 
-<script>
-const PIN = '8682';
-let datos = { chontico: '', ganador: '', foto: '' };
-let puestos = Array(50).fill(false);
-let numeros = [];
+            function loadState() {
+                try {
+                    const raw = localStorage.getItem('rifaData');
+                    if (!raw) return false;
+                    const data = JSON.parse(raw);
+                    if (data.config) { config = { ...config, ...data.config } }
+                    if (Array.isArray(data.sold)) { sold = data.sold }
+                    return true;
+                } catch (_) { return false }
+            }
 
-function guardar() {
-  datos.chontico = document.getElementById('chontico').value;
-  datos.ganador = document.getElementById('ganador').value;
-  localStorage.setItem('quinientazo', JSON.stringify(datos));
-  localStorage.setItem('puestos', JSON.stringify(puestos));
-}
+            function saveState() {
+                try {
+                    const data = { config: config, sold: sold };
+                    localStorage.setItem('rifaData', JSON.stringify(data));
+                } catch (_) {}
+            }
 
-function cargar() {
-  const saved = localStorage.getItem('quinientazo');
-  if (saved) datos = JSON.parse(saved);
-  const savedPuestos = localStorage.getItem('puestos');
-  if (savedPuestos) puestos = JSON.parse(savedPuestos);
-}
+            function renderUI() {
+                prizeNameDisplay.textContent = config.prizeName || 'Premio';
+                prizeValueDisplay.textContent = '$' + Number(config.prizeValue || 0).toLocaleString('es-CL');
+                lotteryDisplay.textContent = '🎲 ' + (config.lottery || 'Lotería');
+                prizeNameInput.value = config.prizeName || '';
+                spotPriceInput.value = config.spotPrice || '';
+                prizeValueInput.value = config.prizeValue || '';
+                lotteryInput.value = config.lottery || '';
+                numbersGrid.innerHTML = '';
+                const avail = TOTAL_NUMBERS - sold.length;
+                spotsInfo.textContent = avail + ' disponibles';
+                for (let i = 1; i <= TOTAL_NUMBERS; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'number-item';
+                    div.textContent = i;
+                    const isSold = sold.includes(i);
+                    const isSelected = selected.includes(i);
+                    if (isSold) { div.classList.add('sold') } else if (isSelected) { div.classList.add('selected') }
+                    if (!isSold) {
+                        div.addEventListener('click', () => handleNumberClick(i));
+                    }
+                    numbersGrid.appendChild(div);
+                }
+                const totalSelected = selected.length;
+                const totalAmount = totalSelected * (config.spotPrice || 0);
+                selectedCount.textContent = totalSelected;
+                totalPrice.textContent = '$' + totalAmount.toLocaleString('es-CL');
+                whatsappBtn.disabled = totalSelected === 0;
+            }
 
-function tomarFoto() {
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-    .then(stream => {
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      video.play();
-      const btn = document.createElement('button');
-      btn.textContent = 'Capturar';
-      btn.style.padding = '20px';
-      document.body.appendChild(btn);
-      btn.onclick = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0);
-        datos.foto = canvas.toDataURL('image/jpeg');
-        guardar();
-        document.getElementById('fotoPreview').src = datos.foto;
-        document.getElementById('fotoPreview').style.display = 'block';
-        stream.getTracks().forEach(t => t.stop());
-        btn.remove();
-        alert('Foto capturada');
-      };
-    })
-    .catch(e => alert('Error cámara: ' + e.message));
-}
+            function handleNumberClick(num) {
+                if (sold.includes(num)) return;
+                const idx = selected.indexOf(num);
+                if (idx === -1) { selected.push(num) } else { selected.splice(idx, 1) }
+                renderUI();
+            }
 
-function cargarURL() {
-  const url = document.getElementById('urlFoto').value.trim();
-  if (url) {
-    datos.foto = url;
-    guardar();
-    document.getElementById('fotoPreview').src = url;
-    document.getElementById('fotoPreview').style.display = 'block';
-    alert('URL guardada');
-  }
-}
+            function enviarTickets(nombre, whatsapp, numeros) {
+                const total = numeros.length * (config.spotPrice || 0);
+                const fecha = new Date().toLocaleDateString('es-CL');
+                
+                const ticketComprador = `🎟️ *CONFIRMACIÓN QUINIENTAZO*
+═══════════════════════════════════════
+👤 Cliente: ${nombre}
+📱 WhatsApp: ${whatsapp}
+🏷️ Premio: ${config.prizeName}
+🎲 Lotería: ${config.lottery}
+═══════════════════════════════════════
+🔢 Números: ${numeros.join(', ')}
+💰 Total: $${total.toLocaleString('es-CL')}
+📅 Fecha: ${fecha}
+═══════════════════════════════════════
+✅ Ticket guardado. ¡Suerte!`;
 
-function limpiarFoto() {
-  datos.foto = '';
-  document.getElementById('urlFoto').value = '';
-  document.getElementById('fotoPreview').style.display = 'none';
-  guardar();
-}
+                const ticketAdmin = `📦 *NUEVA COMPRA - QUINIENTAZO*
+═══════════════════════════════════════
+👤 Cliente: ${nombre}
+📱 WhatsApp: ${whatsapp}
+───────────────────────────────────────
+🔢 Números: ${numeros.join(', ')}
+💰 Total: $${total.toLocaleString('es-CL')}
+📅 Fecha: ${fecha}
+═══════════════════════════════════════`;
 
-function login() {
-  if (document.getElementById('pinInput').value === PIN) {
-    document.getElementById('pin').classList.add('hidden');
-    document.getElementById('admin').classList.remove('hidden');
-    cargar();
-    document.getElementById('chontico').value = datos.chontico;
-    document.getElementById('ganador').value = datos.ganador;
-    if (datos.foto) {
-      document.getElementById('fotoPreview').src = datos.foto;
-      document.getElementById('fotoPreview').style.display = 'block';
-    }
-    document.getElementById('porcentaje').textContent = Math.round((puestos.filter(p => p).length / 50) * 100) + '%';
-  } else {
-    alert('PIN incorrecto');
-  }
-}
+                window.open(`https://wa.me/57${whatsapp}?text=${encodeURIComponent(ticketComprador)}`, '_blank');
+                setTimeout(() => {
+                    window.open(`https://wa.me/57${ADMIN_WA}?text=${encodeURIComponent(ticketAdmin)}`, '_blank');
+                }, 500);
+            }
 
-function logout() {
-  document.getElementById('admin').classList.add('hidden');
-  document.getElementById('pin').classList.remove('hidden');
-  document.getElementById('pinInput').value = '';
-}
+            adminToggleBtn.addEventListener('click', () => {
+                adminPanel.classList.toggle('open');
+                adminToggleBtn.textContent = adminPanel.classList.contains('open') ? '🔒 Cerrar Panel' : '⚙️ Panel Administrador';
+            });
 
-function goPublic() {
-  document.getElementById('pin').classList.add('hidden');
-  document.getElementById('public').classList.remove('hidden');
-  cargar();
-  if (datos.foto) {
-    document.getElementById('fotoPublica').src = datos.foto;
-    document.getElementById('fotoPublica').style.display = 'block';
-  }
-  construirGrilla();
-}
+            saveConfigBtn.addEventListener('click', () => {
+                const name = prizeNameInput.value.trim() || 'Premio';
+                const spot = parseFloat(spotPriceInput.value);
+                const prize = parseFloat(prizeValueInput.value);
+                const lottery = lotteryInput.value.trim() || 'Lotería';
+                config.prizeName = name;
+                config.spotPrice = isNaN(spot) ? 0 : spot;
+                config.prizeValue = isNaN(prize) ? 0 : prize;
+                config.lottery = lottery;
+                saveState();
+                renderUI();
+                showToast('✅ Configuración guardada');
+            });
 
-function goBack() {
-  document.getElementById('public').classList.add('hidden');
-  document.getElementById('pin').classList.remove('hidden');
-}
+            resetSoldBtn.addEventListener('click', () => {
+                if (!confirm('¿Reiniciar todos los números vendidos?')) return;
+                sold = [];
+                selected = [];
+                saveState();
+                renderUI();
+                showToast('🔄 Números reiniciados');
+            });
 
-function construirGrilla() {
-  const grid = document.getElementById('grid');
-  grid.innerHTML = '';
-  for (let i = 0; i < 50; i++) {
-    const btn = document.createElement('button');
-    btn.className = 'gridBtn';
-    btn.textContent = String(i * 2).padStart(2, '0') + '-' + String(i * 2 + 1).padStart(2, '0');
-    if (puestos[i]) {
-      btn.disabled = true;
-    } else {
-      btn.onclick = () => seleccionar(i, btn);
-    }
-    grid.appendChild(btn);
-  }
-  document.getElementById('pubVendidos').textContent = puestos.filter(p => p).length;
-  document.getElementById('pubPorcentaje').textContent = Math.round((puestos.filter(p => p).length / 50) * 100) + '%';
-  document.getElementById('pubChontico').textContent = datos.chontico || '-';
-}
+            if (borrarTodoBtn) {
+                borrarTodoBtn.addEventListener('click', function() {
+                    if (!confirm('⚠️ ¿BORRAR TODO? Se perderán todas las imágenes, configuración y números.')) return;
+                    if (!confirm('¿ESTÁS 100% SEGURO? Esta acción NO se puede deshacer.')) return;
+                    localStorage.removeItem('rifaData');
+                    location.reload();
+                });
+            }
 
-function seleccionar(idx, btn) {
-  if (numeros.includes(idx)) {
-    numeros = numeros.filter(i => i !== idx);
-    btn.classList.remove('selected');
-  } else {
-    numeros.push(idx);
-    btn.classList.add('selected');
-  }
-}
+            whatsappBtn.addEventListener('click', () => {
+                if (selected.length === 0) return;
+                const nums = selected.slice().sort((a, b) => a - b);
+                const total = nums.length * (config.spotPrice || 0);
+                let msg = '🎟️ *QUINIENTAZO* ';
+                msg += '\n🏷️ ' + (config.prizeName || 'Premio');
+                msg += '\n🎲 ' + (config.lottery || '');
+                msg += '\n📅 ' + new Date().toLocaleDateString('es-CL');
+                msg += '\n\n🔢 *Números:* ' + nums.join(', ');
+                msg += '\n💰 *Total:* $' + total.toLocaleString('es-CL');
+                msg += '\n\n✅ ¡Reservados!';
+                const url = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(msg);
+                window.open(url, '_blank');
+            });
 
-cargar();
-</script>
+            const logoImage = document.getElementById('logoImage');
+            const logoPlaceholder = document.getElementById('logoPlaceholder');
+            const premioImagen = document.getElementById('premioImagen');
+            const imagenPlaceholder = document.getElementById('imagenPlaceholder');
+            const premioNombreDisplay = document.getElementById('premioNombreDisplay');
+            const premioDescripcion = document.getElementById('premioDescripcion');
+            const infoRifaNombre = document.getElementById('infoRifaNombre');
+            const infoFecha = document.getElementById('infoFecha');
+            const infoValor = document.getElementById('infoValor');
+            const btnPublico = document.getElementById('btnPublico');
+            const btnAdmin = document.getElementById('btnAdmin');
+            const claveInput = document.getElementById('claveInput');
+            const btnClave = document.getElementById('btnClave');
 
+            let configNueva = { logoURL: '', imagenPremioURL: '', fechaSorteo: '', reglas: '' };
+            let clienteModal = { nombre: '', whatsapp: '' };
+
+            function cargarConfigNueva() {
+                try {
+                    const raw = localStorage.getItem('rifaData');
+                    if (!raw) return;
+                    const data = JSON.parse(raw);
+                    if (data.configNueva) {
+                        configNueva = { ...configNueva, ...data.configNueva };
+                        if (configNueva.logoURL) {
+                            logoImage.src = configNueva.logoURL;
+                            logoImage.style.display = 'block';
+                            logoPlaceholder.style.display = 'none';
+                        }
+                        if (configNueva.imagenPremioURL) {
+                            premioImagen.src = configNueva.imagenPremioURL;
+                            premioImagen.style.display = 'block';
+                            imagenPlaceholder.style.display = 'none';
+                        }
+                        if (configNueva.fechaSorteo) { infoFecha.textContent = configNueva.fechaSorteo }
+                        if (configNueva.reglas) { premioDescripcion.textContent = configNueva.reglas }
+                    }
+                } catch (_) {}
+            }
+
+            function guardarConfigNueva() {
+                try {
+                    const raw = localStorage.getItem('rifaData');
+                    const data = raw ? JSON.parse(raw) : {};
+                    data.configNueva = configNueva;
+                    localStorage.setItem('rifaData', JSON.stringify(data));
+                } catch (_) {}
+            }
+
+            function mostrarLogo(url) {
+                if (url && url.trim() !== '') {
+                    logoImage.src = url.trim();
+                    logoImage.style.display = 'block';
+                    logoPlaceholder.style.display = 'none';
+                    configNueva.logoURL = url.trim();
+                    guardarConfigNueva();
+                    showToast('✅ Logo actualizado');
+                }
+            }
+
+            function mostrarImagenPremio(url) {
+                if (url && url.trim() !== '') {
+                    premioImagen.src = url.trim();
+                    premioImagen.style.display = 'block';
+                    imagenPlaceholder.style.display = 'none';
+                    configNueva.imagenPremioURL = url.trim();
+                    guardarConfigNueva();
+                    showToast('✅ Imagen del premio actualizada');
+                }
+            }
+
+            function actualizarFecha(fecha) {
+                if (fecha) {
+                    infoFecha.textContent = fecha;
+                    configNueva.fechaSorteo = fecha;
+                    guardarConfigNueva();
+                }
+            }
+
+            function actualizarReglas(reglas) {
+                if (reglas) {
+                    premioDescripcion.textContent = reglas;
+                    configNueva.reglas = reglas;
+                    guardarConfigNueva();
+                }
+            }
+
+            btnPublico.addEventListener('click', () => {
+                document.querySelector('.pantalla-principal').style.display = 'block';
+                document.querySelector('.header-info').style.display = 'flex';
+                document.querySelector('.numbers-section').style.display = 'block';
+                document.querySelector('.whatsapp-area').style.display = 'flex';
+                showToast('👥 Modo Público');
+            });
+
+            btnAdmin.addEventListener('click', () => {
+                const clave = claveInput.value.trim();
+                if (clave === '8682') {
+                    adminPanel.classList.add('open');
+                    adminToggleBtn.textContent = '🔒 Cerrar Panel';
+                    showToast('🔐 Acceso concedido');
+                    claveInput.value = '';
+                } else {
+                    showToast('❌ Clave incorrecta');
+                    claveInput.value = '';
+                    claveInput.focus();
+                }
+            });
+
+            btnClave.addEventListener('click', () => { btnAdmin.click() });
+            claveInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { btnAdmin.click() } });
+
+            const fileInput = document.getElementById('fileInput');
+            const btnSubirImagen = document.getElementById('btnSubirImagen');
+            const camInput = document.getElementById('camInput');
+            const btnCamara = document.getElementById('btnCamara');
+
+            function procesarImagen(file, destino) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const imgUrl = event.target.result;
+                    if (destino === 'logo') {
+                        mostrarLogo(imgUrl);
+                        document.getElementById('cfgLogo').value = imgUrl;
+                    } else {
+                        mostrarImagenPremio(imgUrl);
+                        document.getElementById('cfgImagen').value = imgUrl;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+
+            btnSubirImagen.addEventListener('click', () => {
+                const active = document.activeElement;
+                let destino = 'premio';
+                if (active && active.id === 'cfgLogo') { destino = 'logo' }
+                fileInput.dataset.destino = destino;
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const destino = fileInput.dataset.destino || 'premio';
+                    procesarImagen(file, destino);
+                }
+                fileInput.value = '';
+            });
+
+            btnCamara.addEventListener('click', () => { camInput.click() });
+            camInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) { procesarImagen(file, 'premio') }
+                camInput.value = '';
+            });
+
+            function sincronizarConfiguracion() {
+                const cfgLogo = document.getElementById('cfgLogo');
+                const cfgImagen = document.getElementById('cfgImagen');
+                const cfgLoteria = document.getElementById('cfgLoteria');
+                const cfgFecha = document.getElementById('cfgFecha');
+                const cfgValorPremio = document.getElementById('cfgValorPremio');
+                const cfgRegla = document.getElementById('cfgRegla');
+
+                if (cfgLogo) {
+                    cfgLogo.addEventListener('change', function() { if (this.value && this.value.trim() !== '') { mostrarLogo(this.value.trim()) } });
+                    cfgLogo.addEventListener('keypress', function(e) { if (e.key === 'Enter') { if (this.value && this.value.trim() !== '') { mostrarLogo(this.value.trim()) } } });
+                    if (cfgLogo.value && cfgLogo.value.trim() !== '') { mostrarLogo(cfgLogo.value.trim()) }
+                }
+                if (cfgImagen) {
+                    cfgImagen.addEventListener('change', function() { if (this.value && this.value.trim() !== '') { mostrarImagenPremio(this.value.trim()) } });
+                    cfgImagen.addEventListener('keypress', function(e) { if (e.key === 'Enter') { if (this.value && this.value.trim() !== '') { mostrarImagenPremio(this.value.trim()) } } });
+                    if (cfgImagen.value && cfgImagen.value.trim() !== '') { mostrarImagenPremio(cfgImagen.value.trim()) }
+                }
+                if (cfgFecha) {
+                    cfgFecha.addEventListener('change', function() { if (this.value) { actualizarFecha(this.value) } });
+                    if (cfgFecha.value) { actualizarFecha(cfgFecha.value) }
+                }
+                if (cfgRegla) {
+                    cfgRegla.addEventListener('change', function() { if (this.value) { actualizarReglas(this.value) } });
+                    if (cfgRegla.value) { actualizarReglas(cfgRegla.value) }
+                }
+                if (cfgLoteria) {
+                    cfgLoteria.addEventListener('change', function() { infoRifaNombre.textContent = this.value || 'QUINIENTAZO' });
+                    if (cfgLoteria.value) { infoRifaNombre.textContent = cfgLoteria.value }
+                }
+                if (cfgValorPremio) {
+                    cfgValorPremio.addEventListener('change', function() { infoValor.textContent = '$' + (this.value || '0') });
+                    if (cfgValorPremio.value) { infoValor.textContent = '$' + cfgValorPremio.value }
+                }
+            }
+
+            function iniciarPantallaNueva() {
+                cargarConfigNueva();
+                sincronizarConfiguracion();
+                document.querySelector('.pantalla-principal').style.display = 'block';
+                document.querySelector('.header-info').style.display = 'flex';
+                document.querySelector('.numbers-section').style.display = 'block';
+                document.querySelector('.whatsapp-area').style.display = 'flex';
+            }
+
+            numbersGrid.addEventListener('click', (e) => {
+                if (e.target.classList.contains('number-item') && !e.target.classList.contains('sold')) {
+                    const num = parseInt(e.target.textContent);
+                    const nombre = prompt('Nombre completo:');
+                    if (!nombre) return;
+                    const whatsapp = prompt('WhatsApp (ej: 3001234567):');
+                    if (!whatsapp) return;
+                    if (!selected.includes(num)) selected.push(num);
+                    sold.push(num);
+                    saveState();
+                    renderUI();
+                    enviarTickets(nombre, whatsapp, [num]);
+                    showToast('✅ Tickets enviados');
+                }
+            });
+
+            function init() {
+                loadState();
+                renderUI();
+                iniciarPantallaNueva();
+                if (window.location.search.includes('admin=1')) {
+                    adminPanel.classList.add('open');
+                    adminToggleBtn.textContent = '🔒 Cerrar Panel';
+                }
+            }
+            init();
+        })();
+    </script>
 </body>
 </html>
