@@ -1,552 +1,255 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>🎟️ QUINIENTAZO</title>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#0b0b1a 0%,#1a1a3e 100%);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:20px 10px 40px;color:#fff}
-        .app{max-width:1200px;width:100%;background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);border-radius:40px;padding:25px 20px 35px;box-shadow:0 25px 50px rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.08)}
-        .pantalla{display:none}
-        .pantalla.active{display:flex;flex-direction:column;gap:20px}
-        .admin-toggle{display:flex;justify-content:flex-end;margin-bottom:12px}
-        .admin-toggle button{background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.3);color:#ffd966;padding:8px 20px;border-radius:40px;font-weight:600;font-size:.9rem;cursor:pointer;transition:.2s}
-        .admin-toggle button:hover{background:rgba(255,215,0,0.25);border-color:#ffd966;transform:scale(1.02)}
-        .admin-panel{background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);border-radius:28px;padding:20px 22px 28px;margin-bottom:25px;border:1px solid rgba(255,215,0,0.15);display:none}
-        .admin-panel.open{display:block}
-        .admin-panel h2{font-size:1.3rem;font-weight:700;color:#ffd966;margin-bottom:20px;display:flex;align-items:center;gap:10px}
-        .admin-panel h2::before{content:"🔐";font-size:1.4rem}
-        .admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px 20px;margin-bottom:22px}
-        .admin-group{display:flex;flex-direction:column;gap:6px}
-        .admin-group label{font-size:.8rem;font-weight:600;text-transform:uppercase;color:#b0b0d0}
-        .admin-group input,.admin-group textarea{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:12px 16px;color:#fff;font-size:.95rem;transition:.2s;font-family:inherit;width:100%}
-        .admin-group input:focus,.admin-group textarea:focus{outline:none;border-color:#ffd966;background:rgba(255,255,255,0.10);box-shadow:0 0 0 3px rgba(255,215,0,0.15)}
-        .admin-group textarea{resize:vertical;min-height:70px}
-        .admin-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}
-        .btn{border:none;border-radius:40px;padding:12px 28px;font-weight:700;font-size:.95rem;cursor:pointer;transition:.2s;background:rgba(255,255,255,0.06);color:#fff;border:1px solid rgba(255,255,255,0.08);display:inline-flex;align-items:center;gap:8px}
-        .btn-primary{background:linear-gradient(135deg,#f7b731,#f5a623);color:#0b0b1a;border:none;font-weight:800;box-shadow:0 8px 20px rgba(245,166,35,0.25)}
-        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(245,166,35,0.35)}
-        .btn-danger{background:rgba(255,70,70,0.15);border:1px solid rgba(255,70,70,0.25);color:#ff6b6b}
-        .btn-danger:hover{background:rgba(255,70,70,0.25)}
-        .btn-borrar{background:rgba(255,0,0,0.3);border:1px solid rgba(255,0,0,0.5);color:#ff4444}
-        .btn-borrar:hover{background:rgba(255,0,0,0.5)}
-        .header-display{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:20px;gap:10px}
-        .header-display .lottery-badge{background:rgba(255,215,0,0.10);border:1px solid rgba(255,215,0,0.15);border-radius:40px;padding:6px 18px;font-size:.8rem;font-weight:600;color:#ffd966}
-        .header-display .prize-name{font-size:1.6rem;font-weight:800;background:linear-gradient(135deg,#fff,#ffd966);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-        .header-display .prize-value{font-size:1.2rem;font-weight:700;color:#a0f0c0}
-        .numbers-section{margin-top:28px}
-        .numbers-section h3{font-size:1.1rem;font-weight:600;color:#c0c0e0;margin-bottom:16px;display:flex;align-items:center;gap:12px}
-        .numbers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:12px}
-        .number-item{aspect-ratio:1/1;background:rgba(255,255,255,0.05);border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.95rem;cursor:pointer;transition:.15s;border:1px solid rgba(255,255,255,0.06);user-select:none;color:#ddd;padding:10px;text-align:center}
-        .number-item:hover{background:rgba(255,215,0,0.10);transform:scale(1.04);border-color:rgba(255,215,0,0.2)}
-        .number-item.sold{background:rgba(255,70,70,0.15);border-color:rgba(255,70,70,0.2);color:#ff6b6b;cursor:not-allowed;opacity:.5}
-        .number-item.selected{background:rgba(255,215,0,0.20);border-color:#ffd966;color:#ffd966;box-shadow:0 0 20px rgba(255,215,0,0.10)}
-        .whatsapp-area{margin-top:28px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;background:rgba(0,0,0,0.25);border-radius:30px;padding:16px 22px;border:1px solid rgba(255,255,255,0.05)}
-        .whatsapp-area .selected-info{font-size:.95rem;color:#c0c0e0}
-        .whatsapp-area .selected-info strong{color:#ffd966}
-        .btn-whatsapp{background:#25d366;border:none;border-radius:40px;padding:14px 32px;font-weight:700;font-size:1rem;color:#fff;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(37,211,102,0.25)}
-        .btn-whatsapp:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(37,211,102,0.35)}
-        .btn-whatsapp:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
-        .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);padding:14px 28px;border-radius:60px;border:1px solid rgba(255,255,255,0.08);color:#fff;font-weight:500;font-size:.95rem;opacity:0;transition:all .4s cubic-bezier(.22,1,.36,1);z-index:999;pointer-events:none;text-align:center;max-width:90%}
-        .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-        .pantalla-principal{display:flex;flex-direction:column;gap:16px;padding:10px 0}
-        .seccion-logo{height:80px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.03);border-radius:20px;border:1px dashed rgba(255,255,255,0.08)}
-        .logo-container{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
-        .logo-container img{max-height:70px;max-width:100%;object-fit:contain;border-radius:12px}
-        .logo-placeholder{display:flex;flex-direction:column;align-items:center;color:#666;font-size:.7rem}
-        .logo-placeholder span{font-size:2rem}
-        .seccion-articulo{flex:3;min-height:300px;background:rgba(255,255,255,0.03);border-radius:28px;border:1px solid rgba(255,255,255,0.06);overflow:hidden;display:flex;flex-direction:column}
-        .articulo-container{display:flex;flex-direction:column;height:100%;padding:16px}
-        .articulo-imagen{flex:1;min-height:200px;background:rgba(0,0,0,0.3);border-radius:20px;display:flex;align-items:center;justify-content:center;overflow:hidden}
-        .articulo-imagen img{width:100%;height:100%;object-fit:cover}
-        .imagen-placeholder{display:flex;flex-direction:column;align-items:center;color:#555}
-        .imagen-placeholder span{font-size:3rem}
-        .imagen-placeholder small{font-size:.8rem;margin-top:8px}
-        .articulo-info{padding:14px 4px 4px}
-        .articulo-info h2{font-size:1.3rem;font-weight:700;color:#fff;margin:0 0 4px 0}
-        .articulo-descripcion{font-size:.85rem;color:#8888aa;margin:0}
-        .seccion-info{background:rgba(0,0,0,0.4);border-radius:24px;padding:16px 18px;border:1px solid rgba(255,255,255,0.06)}
-        .info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-        .info-item{display:flex;flex-direction:column;align-items:center;text-align:center}
-        .info-label{font-size:.6rem;text-transform:uppercase;color:#666;letter-spacing:.5px}
-        .info-value{font-size:.9rem;font-weight:600;color:#ffd966;margin-top:2px}
-        .info-botones{display:flex;gap:10px;margin-bottom:12px}
-        .btn-publico{flex:1;background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;border:none;padding:12px;border-radius:40px;font-weight:700;font-size:.9rem;cursor:pointer;transition:.2s}
-        .btn-publico:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(46,204,113,0.3)}
-        .btn-admin{flex:1;background:rgba(255,215,0,0.15);color:#ffd966;border:1px solid rgba(255,215,0,0.2);padding:12px;border-radius:40px;font-weight:700;font-size:.9rem;cursor:pointer;transition:.2s}
-        .btn-admin:hover{background:rgba(255,215,0,0.25)}
-        .info-clave{display:flex;gap:8px;align-items:center}
-        .info-clave input{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:40px;padding:10px 16px;color:#fff;font-size:.9rem;font-family:inherit;text-align:center;letter-spacing:4px}
-        .info-clave input:focus{outline:none;border-color:#ffd966}
-        .btn-clave{background:#ffd966;color:#0b0b1a;border:none;padding:10px 20px;border-radius:40px;font-weight:700;cursor:pointer;transition:.2s}
-        .btn-clave:hover{transform:scale(1.05)}
-        .p3-config-box{background:rgba(0,0,0,0.3);border-radius:20px;padding:16px 18px;margin-bottom:20px;border:1px solid rgba(255,215,0,0.08)}
-        .p3-config-box h3{font-size:1rem;color:#ffd966;margin-bottom:12px}
-        .p3-config-box input,.p3-config-box textarea{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px 14px;color:#fff;font-size:.9rem;font-family:inherit;margin-bottom:8px}
-        .p3-config-box input:focus,.p3-config-box textarea:focus{outline:none;border-color:#ffd966}
-        .p3-config-box textarea{resize:vertical;min-height:60px}
-        .sorter-box{background:rgba(0,0,0,0.3);border-radius:20px;padding:20px;border:1px solid rgba(255,215,0,0.15)}
-        .sorter-box h3{font-size:1.2rem;color:#ffd966;margin-bottom:16px}
-        .sorter-inputs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
-        .sorter-inputs input{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;color:#fff;font-size:.95rem;text-align:center;font-weight:600}
-        .sorter-inputs input:focus{outline:none;border-color:#ffd966}
-        .sorter-actions{display:flex;gap:10px;flex-wrap:wrap}
-        .celebracion{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:9999;gap:30px;animation:aparecer .5s}
-        .celebracion.show{display:flex;animation:aparecer .5s}
-        @keyframes aparecer{from{opacity:0}to{opacity:1}}
-        .ganador-numeros{font-size:8rem;font-weight:900;color:#ffd966;text-shadow:0 0 40px rgba(255,215,0,0.8);animation:titilar 0.3s infinite;letter-spacing:20px}
-        @keyframes titilar{0%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}
-        .ganador-info{font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,#00ff88,#00ffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;animation:flotante 1.5s infinite}
-        @keyframes flotante{0%{transform:translateY(0)}50%{transform:translateY(-20px)}100%{transform:translateY(0)}}
-        .confetti{position:fixed;width:10px;height:10px;background:#ffd966;pointer-events:none;animation:caer 3s linear}
-        @keyframes caer{to{transform:translateY(100vh) rotate(720deg);opacity:0}}
-        .status-box{background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);border-radius:20px;padding:16px;text-align:center}
-        .status-label{font-size:.75rem;text-transform:uppercase;color:#888;margin-bottom:8px}
-        .status-value{font-size:2rem;font-weight:800;color:#ffd966;margin-bottom:8px}
-        .status-bar{width:100%;height:8px;background:rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;margin-bottom:8px}
-        .status-fill{height:100%;background:linear-gradient(90deg,#ffd966,#f5a623);width:0%;transition:width .3s}
-        .status-text{font-size:.8rem;color:#8888aa}
-        @media(max-width:600px){.app{padding:16px 12px 24px;border-radius:24px}.sorter-inputs{grid-template-columns:1fr}.numbers-grid{grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:10px}.info-grid{grid-template-columns:repeat(2,1fr)}}
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎟️ Quinientazo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0d0d1a; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 10px; }
+    .container { max-width: 500px; width: 100%; }
+    .pantalla { display: none; }
+    .pantalla.activa { display: block; }
+    h1 { text-align: center; color: #ffcc00; font-size: 24px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .logo-img { height: 50px; }
+    .articulo-img { max-width: 100%; border-radius: 10px; margin: 10px 0; }
+    .info { text-align: center; margin: 10px 0; font-size: 14px; color: #aaa; }
+    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 15px 0; width: 100%; }
+    .puesto { background: #1a1a2e; padding: 6px 2px; text-align: center; border-radius: 6px; cursor: pointer; border: 2px solid #00f5ff; font-weight: bold; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-height: 30px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+    .puesto:hover { transform: scale(1.05); }
+    .puesto.seleccionado { border-color: #ffcc00; background: #2a2a4e; }
+    .puesto.reservado { border-color: #ff0040; background: #3a1a2e; cursor: not-allowed; opacity: 0.6; }
+    .datos input { width: 100%; padding: 10px; margin: 6px 0; border-radius: 6px; border: none; background: #1a1a2e; color: #fff; box-sizing: border-box; }
+    .btn { padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; box-sizing: border-box; }
+    .btn-reservar { background: #00f5ff; color: #000; }
+    .btn-reservar:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-volver { background: #555; color: #fff; margin-top: 5px; }
+    .btn-ir { background: #00f5ff; color: #000; }
+    .total { text-align: center; font-size: 16px; margin: 10px 0; }
+  </style>
 </head>
 <body>
-    <div id="toast" class="toast">✅ Mensaje</div>
-    <div id="celebracion" class="celebracion"></div>
-    <div class="app" id="app">
-        <!-- PANTALLA 1: PRINCIPAL -->
-        <div id="pantalla1" class="pantalla active">
-            <div class="pantalla-principal">
-                <div class="seccion-logo">
-                    <div class="logo-container">
-                        <img id="logoImage" src="" alt="Logo" style="display:none" />
-                        <div class="logo-placeholder" id="logoPlaceholder">
-                            <span>🏆</span>
-                            <small>QUINIENTAZO</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="seccion-articulo">
-                    <div class="articulo-container">
-                        <div class="articulo-imagen">
-                            <img id="premioImagen" src="" alt="Premio" style="display:none" />
-                            <div class="imagen-placeholder" id="imagenPlaceholder">
-                                <span>📸</span>
-                                <small>Imagen del premio</small>
-                            </div>
-                        </div>
-                        <div class="articulo-info">
-                            <h2 id="premioNombreDisplay">GRAN PREMIO</h2>
-                            <p class="articulo-descripcion" id="premioDescripcion">Descripción del artículo</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="seccion-info">
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <span class="info-label">🎯 Rifa</span>
-                            <span class="info-value" id="infoRifaNombre">QUINIENTAZO</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">📅 Fecha</span>
-                            <span class="info-value" id="infoFecha">Hoy</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">💰 Valor</span>
-                            <span class="info-value" id="infoValor">$50K</span>
-                        </div>
-                    </div>
-                    <div class="info-botones">
-                        <button class="btn btn-publico" onclick="irA('pantalla2')">👥 Comprar</button>
-                        <button class="btn btn-admin" onclick="irA('pantalla3')">🔐 Admin</button>
-                    </div>
-                    <div class="info-clave">
-                        <input type="password" id="claveInput" placeholder="Clave" maxlength="4" />
-                        <button class="btn btn-clave" onclick="verificarClave()">✅</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="container">
 
-        <!-- PANTALLA 2: PUBLICO (COMPRA) -->
-        <div id="pantalla2" class="pantalla">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-                <h2 style="font-size:1.8rem;font-weight:800">🎟️ Selecciona tu puesto</h2>
-                <button class="btn" onclick="irA('pantalla1')">← Atrás</button>
-            </div>
-            <div class="header-display">
-                <span class="lottery-badge" id="lotteryDisplay2">🎲 Lotería</span>
-                <span class="prize-name" id="prizeNameDisplay2">PREMIO</span>
-                <span class="prize-value" id="prizeValueDisplay2">$0</span>
-            </div>
-            <div class="numbers-section">
-                <h3>
-                    <span>🔢 Puestos disponibles</span>
-                    <span style="font-weight:400;font-size:.8rem;color:#8888aa" id="spotsInfo">0 disponibles</span>
-                </h3>
-                <div class="numbers-grid" id="numbersGrid"></div>
-            </div>
-            <div class="whatsapp-area">
-                <div class="selected-info">
-                    Seleccionados: <strong id="selectedCount">0</strong> &nbsp;·&nbsp; Total: <strong id="totalPrice">$0</strong>
-                </div>
-                <button class="btn-whatsapp" id="whatsappBtn" disabled onclick="enviarWhatsApp()">
-                    💬 Enviar por WhatsApp
-                </button>
-            </div>
-        </div>
+  <!-- ========== PANTALLA 1: INICIO ========== -->
+  <div class="pantalla activa" id="pantalla1">
+    <h1 id="titulo">🏆 QUINIENTAZO</h1>
+    <p id="info" class="info"></p>
+    <div id="articuloContainer"></div>
+    <button class="btn btn-ir" id="btnIrGrilla">📋 VER GRILLA Y RESERVAR</button>
+  </div>
 
-        <!-- PANTALLA 3: ADMIN -->
-        <div id="pantalla3" class="pantalla">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-                <h2 style="font-size:1.8rem;font-weight:800">🔐 Panel Administrador</h2>
-                <button class="btn" onclick="irA('pantalla1')">← Atrás</button>
-            </div>
-            <div class="p3-config-box">
-                <h3>⚙️ Configuración Básica</h3>
-                <input type="text" id="cfgLogo" placeholder="URL del Logo (ej: https://...jpg)">
-                <input type="text" id="cfgImagen" placeholder="URL Imagen Premio (ej: https://...jpg)">
-                <input type="text" id="cfgNombrePremio" placeholder="Nombre del premio">
-                <input type="text" id="cfgDescripcion" placeholder="Descripción">
-                <input type="text" id="cfgLoteria" placeholder="Lotería (ej: Chontico)">
-                <input type="date" id="cfgFecha">
-                <input type="number" id="cfgValorPuesto" placeholder="Valor por puesto (ej: 50000)">
-                <input type="number" id="cfgValorPremio" placeholder="Valor del premio (ej: 2500000)">
-                <button class="btn btn-primary" onclick="guardarConfig()" style="width:100%;margin-top:8px">💾 Guardar Configuración</button>
-            </div>
-
-            <div class="sorter-box">
-                <h3>🎰 REALIZAR SORTEO</h3>
-                <div class="sorter-inputs">
-                    <input type="text" id="chontInput" placeholder="Ej: 2456" maxlength="4">
-                    <input type="text" id="ganadorInput" placeholder="Nombre ganador">
-                    <input type="text" id="whatsappGanadorInput" placeholder="WhatsApp ganador">
-                </div>
-                <div class="sorter-actions">
-                    <button class="btn btn-primary" onclick="realizarSorteo()">🎲 SORTEAR</button>
-                    <button class="btn btn-danger" onclick="resetearVentas()">🔄 Reiniciar ventas</button>
-                    <button class="btn btn-borrar" onclick="borrarTodo()">🗑️ Borrar todo</button>
-                </div>
-            </div>
-
-            <div style="background:rgba(0,0,0,0.3);border-radius:20px;padding:16px;border:1px solid rgba(255,215,0,0.15)">
-                <h3 style="color:#ffd966;margin-bottom:12px">📊 Estado de Ventas</h3>
-                <div class="status-box">
-                    <div class="status-label">Puestos vendidos</div>
-                    <div class="status-value" id="statusVendidos">0 / 50</div>
-                    <div class="status-bar">
-                        <div class="status-fill" id="statusFill"></div>
-                    </div>
-                    <div class="status-text" id="statusPorcentaje">0% - Listo para sortear</div>
-                </div>
-            </div>
-        </div>
+  <!-- ========== PANTALLA 2: GRILLA ========== -->
+  <div class="pantalla" id="pantalla2">
+    <div class="datos">
+      <input type="text" id="nombre" placeholder="👤 Nombre completo" />
+      <input type="text" id="telefono" placeholder="📱 Teléfono (ej: 3019679760)" />
     </div>
+    <div class="grid" id="grid"></div>
+    <div class="total">Seleccionados: <span id="contador">0</span> | Total: $<span id="total">0</span></div>
+    <button class="btn btn-reservar" id="btnReservar" disabled>📲 RESERVAR Y ENVIAR TICKETS</button>
+    <button class="btn btn-volver" id="btnVolverInicio">⬆️ VOLVER AL INICIO</button>
+  </div>
 
-    <script>
-        'use strict';
-        const app = {
-            data: { config: {}, sold: [], selected: [] },
-            PUESTOS: 50,
-            
-            init() {
-                this.cargarDatos();
-                this.actualizarUI();
-                if (location.search.includes('admin=1')) { this.irA('pantalla3') }
-            },
+</div>
 
-            cargarDatos() {
-                try {
-                    const saved = JSON.parse(localStorage.getItem('quinientazo') || '{}');
-                    this.data = { 
-                        config: saved.config || this.data.config,
-                        sold: saved.sold || [],
-                        selected: []
-                    };
-                } catch (e) {}
-            },
+<script>
+const CONFIG = {
+    titulo: "🏆 yogurinazo",
+    rifa: "CHONTICO",
+    premio: "un paquete de yogurin de 47 unidades",
+    precio: 0,
+    articulo: "BOLI YOGURT P47",
+    descripcion: "Paquete de 47 unidades",
+    imagenArticulo: "https://i.ibb.co/GQzBcP4R/tu-imagen.jpg",  // https://ibb.co/GfW9GJBJ
+    logo: "https://i.ibb.co/84xs8v9D/tu-logo.jpg",            // https://ibb.co/GQzBcP4R
+    fontSize: "11px",
+    totalPuestos: 50,
+    admin: "3019679760"
+};
 
-            guardarDatos() {
-                try {
-                    localStorage.setItem('quinientazo', JSON.stringify({
-                        config: this.data.config,
-                        sold: this.data.sold
-                    }));
-                } catch (e) {}
-            },
+const ADMIN = CONFIG.admin;
+const TOTAL_PUESTOS = CONFIG.totalPuestos;
+const PRECIO = CONFIG.precio;
 
-            mostrarToast(msg, duracion = 3000) {
-                const toast = document.getElementById('toast');
-                toast.textContent = msg;
-                toast.classList.add('show');
-                setTimeout(() => toast.classList.remove('show'), duracion);
-            },
+let puestos = [];
+let seleccionados = [];
 
-            actualizarUI() {
-                // Pantalla 1 y 2
-                const cfg = this.data.config;
-                const logo = document.getElementById('logoImage');
-                const logoPlaceholder = document.getElementById('logoPlaceholder');
-                const foto = document.getElementById('premioImagen');
-                const fotoPlaceholder = document.getElementById('imagenPlaceholder');
+function mostrarPantalla(id) {
+    document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+    document.getElementById(id).classList.add('activa');
+}
 
-                if (cfg.logoURL) {
-                    logo.src = cfg.logoURL;
-                    logo.style.display = 'block';
-                    logoPlaceholder.style.display = 'none';
-                } else {
-                    logo.style.display = 'none';
-                    logoPlaceholder.style.display = 'flex';
-                }
-
-                if (cfg.imagenURL) {
-                    foto.src = cfg.imagenURL;
-                    foto.style.display = 'block';
-                    fotoPlaceholder.style.display = 'none';
-                } else {
-                    foto.style.display = 'none';
-                    fotoPlaceholder.style.display = 'flex';
-                }
-
-                document.getElementById('premioNombreDisplay').textContent = cfg.nombre || 'GRAN PREMIO';
-                document.getElementById('premioDescripcion').textContent = cfg.descripcion || 'Descripción del artículo';
-                document.getElementById('infoRifaNombre').textContent = cfg.loteria || 'QUINIENTAZO';
-                document.getElementById('infoFecha').textContent = cfg.fecha || 'Hoy';
-                document.getElementById('infoValor').textContent = '$' + (cfg.valorPuesto ? Number(cfg.valorPuesto).toLocaleString('es-CO') : '0');
-
-                // Pantalla 2
-                document.getElementById('lotteryDisplay2').textContent = '🎲 ' + (cfg.loteria || 'Lotería');
-                document.getElementById('prizeNameDisplay2').textContent = cfg.nombre || 'PREMIO';
-                document.getElementById('prizeValueDisplay2').textContent = '$' + (cfg.valorPremio ? Number(cfg.valorPremio).toLocaleString('es-CO') : '0');
-
-                // Grilla números (puestos)
-                const grid = document.getElementById('numbersGrid');
-                grid.innerHTML = '';
-                const avail = this.PUESTOS - this.data.sold.length;
-                document.getElementById('spotsInfo').textContent = avail + ' disponibles';
-
-                for (let i = 0; i < this.PUESTOS; i++) {
-                    const num1 = String(i * 2).padStart(2, '0');
-                    const num2 = String(i * 2 + 1).padStart(2, '0');
-                    const label = `${num1}-${num2}`;
-                    
-                    const div = document.createElement('div');
-                    div.className = 'number-item';
-                    div.textContent = label;
-                    
-                    const isSold = this.data.sold.includes(i);
-                    const isSelected = this.data.selected.includes(i);
-
-                    if (isSold) {
-                        div.classList.add('sold');
-                    } else if (isSelected) {
-                        div.classList.add('selected');
-                    } else {
-                        div.addEventListener('click', () => this.togglePuesto(i));
-                    }
-                    
-                    grid.appendChild(div);
-                }
-
-                // Info WhatsApp
-                const totalSel = this.data.selected.length;
-                const total = totalSel * (cfg.valorPuesto || 0);
-                document.getElementById('selectedCount').textContent = totalSel;
-                document.getElementById('totalPrice').textContent = '$' + total.toLocaleString('es-CO');
-                document.getElementById('whatsappBtn').disabled = totalSel === 0;
-
-                // Status admin
-                const vendidos = this.data.sold.length;
-                const pct = Math.round((vendidos / this.PUESTOS) * 100);
-                document.getElementById('statusVendidos').textContent = vendidos + ' / ' + this.PUESTOS;
-                document.getElementById('statusFill').style.width = pct + '%';
-                document.getElementById('statusPorcentaje').textContent = pct + '% - ' + (pct === 100 ? '🎉 ¡Listo para sortear!' : 'Esperando...');
-            },
-
-            togglePuesto(idx) {
-                const i = this.data.selected.indexOf(idx);
-                if (i === -1) {
-                    this.data.selected.push(idx);
-                } else {
-                    this.data.selected.splice(i, 1);
-                }
-                this.actualizarUI();
-            },
-
-            guardarConfig() {
-                this.data.config = {
-                    logoURL: document.getElementById('cfgLogo').value.trim(),
-                    imagenURL: document.getElementById('cfgImagen').value.trim(),
-                    nombre: document.getElementById('cfgNombrePremio').value.trim(),
-                    descripcion: document.getElementById('cfgDescripcion').value.trim(),
-                    loteria: document.getElementById('cfgLoteria').value.trim(),
-                    fecha: document.getElementById('cfgFecha').value,
-                    valorPuesto: parseInt(document.getElementById('cfgValorPuesto').value) || 0,
-                    valorPremio: parseInt(document.getElementById('cfgValorPremio').value) || 0
-                };
-                this.guardarDatos();
-                this.actualizarUI();
-                this.mostrarToast('✅ Configuración guardada');
-            },
-
-            enviarWhatsApp() {
-                if (this.data.selected.length === 0) return;
-
-                const puestos = this.data.selected.map(i => {
-                    const num1 = String(i * 2).padStart(2, '0');
-                    const num2 = String(i * 2 + 1).padStart(2, '0');
-                    return `${num1}-${num2}`;
-                }).sort();
-
-                const total = this.data.selected.length * (this.data.config.valorPuesto || 0);
-                const cfg = this.data.config;
-
-                let msg = '🎟️ *QUINIENTAZO*\n';
-                msg += '🏷️ ' + (cfg.nombre || 'PREMIO') + '\n';
-                msg += '🎲 ' + (cfg.loteria || 'Lotería') + '\n';
-                msg += '📅 ' + (cfg.fecha || new Date().toLocaleDateString('es-CO')) + '\n\n';
-                msg += '🔢 *Puestos:* ' + puestos.join(', ') + '\n';
-                msg += '💰 *Total:* $' + total.toLocaleString('es-CO') + '\n\n';
-                msg += '✅ ¡Reservados!';
-
-                // Marcar como vendido
-                this.data.selected.forEach(idx => {
-                    if (!this.data.sold.includes(idx)) {
-                        this.data.sold.push(idx);
-                    }
-                });
-                this.data.selected = [];
-                this.guardarDatos();
-                this.actualizarUI();
-
-                const url = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(msg);
-                window.open(url, '_blank');
-                this.mostrarToast('✅ Puestos marcados como vendidos');
-            },
-
-            realizarSorteo() {
-                const chont = document.getElementById('chontInput').value.trim();
-                const ganador = document.getElementById('ganadorInput').value.trim();
-                const whats = document.getElementById('whatsappGanadorInput').value.trim();
-
-                if (!chont || chont.length !== 4 || !ganador) {
-                    this.mostrarToast('❌ Llena Chontico y nombre ganador');
-                    return;
-                }
-
-                const ultimos2 = chont.slice(-2);
-                const puestoGanador = Math.floor(parseInt(ultimos2) / 2);
-
-                if (puestoGanador >= this.PUESTOS) {
-                    this.mostrarToast('❌ Puesto ' + ultimos2 + ' no válido');
-                    return;
-                }
-
-                // Animación
-                this.mostrarCelebracion(ultimos2, ganador);
-                
-                // Guardar resultado
-                this.data.config.ultimoSorteo = {
-                    chontico: chont,
-                    ultimos2: ultimos2,
-                    ganador: ganador,
-                    whatsapp: whats,
-                    fecha: new Date().toLocaleString('es-CO')
-                };
-                this.guardarDatos();
-                this.mostrarToast('🎉 ¡' + ganador + ' GANÓ!');
-
-                // Limpiar inputs
-                document.getElementById('chontInput').value = '';
-                document.getElementById('ganadorInput').value = '';
-                document.getElementById('whatsappGanadorInput').value = '';
-            },
-
-            mostrarCelebracion(numeros, ganador) {
-                const celebracion = document.getElementById('celebracion');
-                celebracion.innerHTML = '';
-                celebracion.classList.add('show');
-
-                const div = document.createElement('div');
-                div.className = 'ganador-numeros';
-                div.textContent = numeros;
-                celebracion.appendChild(div);
-
-                const info = document.createElement('div');
-                info.className = 'ganador-info';
-                info.textContent = '🏆 ' + ganador + ' 🏆';
-                celebracion.appendChild(info);
-
-                // Confetti
-                for (let i = 0; i < 50; i++) {
-                    const conf = document.createElement('div');
-                    conf.className = 'confetti';
-                    conf.style.left = Math.random() * 100 + '%';
-                    conf.style.delay = (Math.random() * 0.5) + 's';
-                    conf.style.backgroundColor = ['#ffd966', '#ff6b6b', '#4ecdc4', '#45b7d1'][Math.floor(Math.random() * 4)];
-                    celebracion.appendChild(conf);
-                }
-
-                setTimeout(() => celebracion.classList.remove('show'), 5000);
-            },
-
-            resetearVentas() {
-                if (!confirm('¿Reiniciar ventas?')) return;
-                this.data.sold = [];
-                this.data.selected = [];
-                this.guardarDatos();
-                this.actualizarUI();
-                this.mostrarToast('🔄 Ventas reiniciadas');
-            },
-
-            borrarTodo() {
-                if (!confirm('⚠️ ¿BORRAR TODO?')) return;
-                if (!confirm('¿ESTÁS 100% SEGURO?')) return;
-                localStorage.removeItem('quinientazo');
-                location.reload();
-            }
-        };
-
-        // Funciones globales
-        window.irA = (pantalla) => {
-            document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('active'));
-            document.getElementById(pantalla).classList.add('active');
-            if (pantalla === 'pantalla3') {
-                const cfg = app.data.config;
-                document.getElementById('cfgLogo').value = cfg.logoURL || '';
-                document.getElementById('cfgImagen').value = cfg.imagenURL || '';
-                document.getElementById('cfgNombrePremio').value = cfg.nombre || '';
-                document.getElementById('cfgDescripcion').value = cfg.descripcion || '';
-                document.getElementById('cfgLoteria').value = cfg.loteria || '';
-                document.getElementById('cfgFecha').value = cfg.fecha || '';
-                document.getElementById('cfgValorPuesto').value = cfg.valorPuesto || '';
-                document.getElementById('cfgValorPremio').value = cfg.valorPremio || '';
-            }
-        };
-
-        window.guardarConfig = () => app.guardarConfig();
-        window.enviarWhatsApp = () => app.enviarWhatsApp();
-        window.realizarSorteo = () => app.realizarSorteo();
-        window.resetearVentas = () => app.resetearVentas();
-        window.borrarTodo = () => app.borrarTodo();
-        window.verificarClave = () => {
-            const clave = document.getElementById('claveInput').value.trim();
-            if (clave === '8682') {
-                app.irA('pantalla3');
-                document.getElementById('claveInput').value = '';
-                app.mostrarToast('🔐 Acceso concedido');
-            } else {
-                app.mostrarToast('❌ Clave incorrecta');
-                document.getElementById('claveInput').value = '';
-            }
-        };
-
-        document.getElementById('claveInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') window.verificarClave();
+function initPuestos() {
+    puestos = [];
+    for (let i = 0; i < TOTAL_PUESTOS; i++) {
+        const num1 = i * 2;
+        const num2 = i * 2 + 1;
+        puestos.push({
+            id: i,
+            label: String(num1).padStart(2, '0') + '-' + String(num2).padStart(2, '0'),
+            reservado: false,
+            comprador: null
         });
+    }
+}
 
-        // Iniciar
-        app.init();
-    </script>
+function renderGrid() {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    puestos.forEach((p, idx) => {
+        const div = document.createElement('div');
+        div.className = 'puesto';
+        div.style.fontSize = CONFIG.fontSize;
+        if (p.reservado) div.classList.add('reservado');
+        if (seleccionados.includes(idx)) div.classList.add('seleccionado');
+        div.textContent = p.label;
+        div.onclick = () => togglePuesto(idx);
+        grid.appendChild(div);
+    });
+    actualizarTotal();
+}
+
+function togglePuesto(idx) {
+    const p = puestos[idx];
+    if (p.reservado) return;
+    const i = seleccionados.indexOf(idx);
+    if (i === -1) {
+        seleccionados.push(idx);
+    } else {
+        seleccionados.splice(i, 1);
+    }
+    renderGrid();
+    document.getElementById('btnReservar').disabled = seleccionados.length === 0;
+}
+
+function actualizarTotal() {
+    document.getElementById('contador').textContent = seleccionados.length;
+    document.getElementById('total').textContent = (seleccionados.length * PRECIO).toLocaleString('es-CO');
+}
+
+function generarTicketComprador(nombre, telefono, puestosSel, total) {
+    const lista = puestosSel.map(idx => puestos[idx].label).join(', ');
+    return '🧾 CONFIRMACIÓN DE COMPRA\n═══════════════════════════════════════\n🎟️ Rifa: ' + CONFIG.rifa + '\n🏆 Premio: ' + CONFIG.premio + '\n📦 Artículo: ' + CONFIG.articulo + '\n───────────────────────────────────────\n📦 Puestos: ' + lista + '\n💰 Total: $' + total.toLocaleString('es-CO') + '\n───────────────────────────────────────\n👤 Comprador: ' + nombre + '\n📱 Teléfono: ' + telefono + '\n📅 ' + new Date().toLocaleString('es-CO') + '\n═══════════════════════════════════════\n✅ Guarda este ticket como comprobante';
+}
+
+function generarTicketAdmin(nombre, telefono, puestosSel, total) {
+    const lista = puestosSel.map(idx => puestos[idx].label).join(', ');
+    return '📦 NUEVA COMPRA - RIFA ' + CONFIG.rifa + '\n═══════════════════════════════════════\n🎟️ Puestos: ' + lista + '\n💰 Total: $' + total.toLocaleString('es-CO') + '\n📦 Artículo: ' + CONFIG.articulo + '\n───────────────────────────────────────\n👤 Comprador: ' + nombre + '\n📱 Teléfono: ' + telefono + '\n📅 ' + new Date().toLocaleString('es-CO') + '\n═══════════════════════════════════════\n✅ Ticket enviado al comprador';
+}
+
+function enviarTickets() {
+    const nombre = document.getElementById('nombre').value.trim();
+    const telefono = document.getElementById('telefono').value.trim();
+
+    if (!nombre || !telefono || telefono.length < 10) {
+        alert('⚠️ Completa nombre y teléfono válido');
+        return;
+    }
+
+    if (seleccionados.length === 0) {
+        alert('⚠️ Selecciona al menos un puesto');
+        return;
+    }
+
+    const total = seleccionados.length * PRECIO;
+
+    const ticketComprador = generarTicketComprador(nombre, telefono, seleccionados, total);
+    const ticketAdmin = generarTicketAdmin(nombre, telefono, seleccionados, total);
+
+    seleccionados.forEach(idx => {
+        puestos[idx].reservado = true;
+        puestos[idx].comprador = nombre;
+    });
+// Enviar al comprador
+window.open(`whatsapp://send?phone=57${telefono}&text=${encodeURIComponent(ticketComprador)}`, '_blank');
+
+// Enviar al admin
+window.open(`whatsapp://send?phone=57${ADMIN}&text=${encodeURIComponent(ticketAdmin)}`, '_blank');
+
+    seleccionados = [];
+    renderGrid();
+    document.getElementById('btnReservar').disabled = true;
+
+    alert('✅ Tickets enviados a tu WhatsApp y al administrador');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('btnIrGrilla').onclick = () => mostrarPantalla('pantalla2');
+    document.getElementById('btnVolverInicio').onclick = () => mostrarPantalla('pantalla1');
+    document.getElementById('btnReservar').onclick = enviarTickets;
+
+    if (CONFIG.logo) {
+        document.getElementById('titulo').innerHTML = '<img src="' + CONFIG.logo + '" class="logo-img"> ' + CONFIG.titulo;
+    }
+    document.getElementById('info').textContent = 'Rifa: ' + CONFIG.rifa + ' | Premio: ' + CONFIG.premio + ' | Artículo: ' + CONFIG.articulo + ' | Valor puesto: $' + CONFIG.precio.toLocaleString('es-CO');
+    if (CONFIG.imagenArticulo) {
+        document.getElementById('articuloContainer').innerHTML = '<img src="' + CONFIG.imagenArticulo + '" class="articulo-img" alt="Artículo">';
+    }
+
+    initPuestos();
+    renderGrid();
+});
+</script>
+<!-- ============================================================
+     🔒 PANEL DE ADMINISTRACIÓN (SOLO CON CÓDIGO)
+============================================================ -->
+<div id="panelAdmin" style="display:none; background:#1a1a2e; padding:20px; border-radius:10px; margin-top:20px; border:2px solid #ffcc00;">
+    <h3 style="color:#ffcc00;">🔒 PANEL DE ADMINISTRACIÓN</h3>
+    <p style="color:#aaa;">Cambia todo desde aquí (solo con código 8682)</p>
+    
+    <div style="margin:10px 0;">
+        <label style="color:#fff;">📝 Título:</label>
+        <input type="text" id="inputTitulo" value="🏆 yogurinazo" style="width:100%; padding:8px; border-radius:6px; border:none; background:#0d0d1a; color:#fff;">
+    </div>
+    
+    <div style="margin:10px 0;">
+        <label style="color:#fff;">🎟️ Nombre de la rifa:</label>
+        <input type="text" id="inputRifa" value="CHONTICO" style="width:100%; padding:8px; border-radius:6px; border:none; background:#0d0d1a; color:#fff;">
+    </div>
+    
+    <div style="margin:10px 0;">
+        <label style="color:#fff;">🏆 Premio:</label>
+        <input type="text" id="inputPremio" value="un paquete de yogurin de 47 unidades" style="width:100%; padding:8px; border-radius:6px; border:none; background:#0d0d1a; color:#fff;">
+    </div>
+    
+    <div style="margin:10px 0;">
+        <label style="color:#fff;">💰 Precio:</label>
+        <input type="number" id="inputPrecio" value="50000" style="width:100%; padding:8px; border-radius:6px; border:none; background:#0d0d1a; color:#fff;">
+    </div>
+    
+    <div style="margin:10px 0;">
+        <label style="color:#fff;">📦 Artículo:</label>
+        <input type="text" id="inputArticulo" value="BOLI YOGURT P47" style="width:100%; padding:8px; border-radius:6px; border:none; background:#0d0d1a; color:#fff;">
+    </div>
+    
+    <div style="margin:10px 0;">
+        <label style="color:#fff;">🖼️ Logo (URL):</label>
+        <input type="text" id="inputLogo" value="" placeholder="Pega la URL de tu logo" style="width:100%; padding:8px; border-radius:6px; border:none; background:#0d0d1a; color:#fff;">
+    </div>
+    
+    <div style="margin:10px 0;">
+        <label style="color:#fff;">📸 Foto del artículo (URL):</label>
+        <input type="text" id="inputFoto" value="" placeholder="Pega la URL de la foto" style="width:100%; padding:8px; border-radius:6px; border:none; background:#0d0d1a; color:#fff;">
+    </div>
+    
+    <button onclick="guardarConfiguracion()" style="background:#00f5ff; color:#000; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; margin-top:10px;">
+        💾 GUARDAR CAMBIOS
+    </button>
+    
+    <button onclick="cerrarPanel()" style="background:#ff0040; color:#fff; padding:10px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; margin-top:10px;">
+        ❌ CERRAR PANEL
+    </button>
+</div>
+
+<!-- ============================================================
+     BOTÓN PARA ABRIR EL PANEL (SOLO CON CÓDIGO)
+============================================================ -->
+<div style="text-align:center; margin:20px 0;">
+    <button onclick="abrirPanelAdmin()" style="background:#ffcc00; color:#000; padding:12px 24px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
+        🔒 ADMIN (solo con código)
+    </button>
+</div>
 </body>
 </html>
+
