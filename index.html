@@ -1,255 +1,261 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🎟️ Quinientazo</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QUINIENTAZO</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', sans-serif; background: #0d0d1a; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 10px; }
-    .container { max-width: 500px; width: 100%; }
-    .pantalla { display: none; }
-    .pantalla.activa { display: block; }
-    h1 { text-align: center; color: #ffcc00; font-size: 24px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
-    .logo-img { height: 50px; }
-    .articulo-img { max-width: 100%; border-radius: 10px; margin: 10px 0; }
-    .info { text-align: center; margin: 10px 0; font-size: 14px; color: #aaa; }
-    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 15px 0; width: 100%; }
-    .puesto { background: #1a1a2e; padding: 6px 2px; text-align: center; border-radius: 6px; cursor: pointer; border: 2px solid #00f5ff; font-weight: bold; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-height: 30px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
-    .puesto:hover { transform: scale(1.05); }
-    .puesto.seleccionado { border-color: #ffcc00; background: #2a2a4e; }
-    .puesto.reservado { border-color: #ff0040; background: #3a1a2e; cursor: not-allowed; opacity: 0.6; }
-    .datos input { width: 100%; padding: 10px; margin: 6px 0; border-radius: 6px; border: none; background: #1a1a2e; color: #fff; box-sizing: border-box; }
-    .btn { padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; box-sizing: border-box; }
-    .btn-reservar { background: #00f5ff; color: #000; }
-    .btn-reservar:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-volver { background: #555; color: #fff; margin-top: 5px; }
-    .btn-ir { background: #00f5ff; color: #000; }
-    .total { text-align: center; font-size: 16px; margin: 10px 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0a0a; color: #0f0; font-family: Arial, sans-serif; }
+    .hidden { display: none !important; }
+    .pin { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 20px; }
+    h1 { color: #ffd700; font-size: 48px; text-align: center; }
+    h2 { color: #ffd700; font-size: 28px; margin: 20px 0; }
+    input { padding: 12px; background: #1a1a1a; border: 2px solid #0f0; color: #0f0; border-radius: 4px; width: 250px; font-size: 14px; }
+    button { padding: 12px 24px; background: #ffd700; color: #000; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 14px; margin: 5px; }
+    button:hover { background: #ffed4e; }
+    .admin { background: #000; padding: 30px; max-width: 1000px; margin: 0 auto; }
+    .box { background: #1a1a1a; border: 2px solid #0f0; padding: 15px; margin: 15px 0; border-radius: 4px; }
+    label { display: block; color: #0f0; font-size: 12px; margin-bottom: 8px; font-weight: bold; }
+    input.full { width: 100%; }
+    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 20px 0; }
+    .gridBtn { padding: 10px; background: #1a1a1a; border: 2px solid #0f0; color: #0f0; font-size: 12px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+    .gridBtn:disabled { background: #666; color: #999; opacity: 0.5; cursor: not-allowed; }
+    .gridBtn.selected { background: #0f0; color: #000; }
+    .public { background: #000; padding: 20px; min-height: 100vh; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+    .stat-box { background: #1a1a1a; border: 2px solid #0f0; padding: 20px; border-radius: 4px; text-align: center; }
+    .stat-box h3 { color: #ffd700; font-size: 24px; }
+    .stat-box p { color: #0f0; margin: 10px 0; }
+    .nav { display: flex; justify-content: space-between; margin: 20px 0; }
+    img.foto { max-width: 100%; max-height: 250px; border: 2px solid #0f0; border-radius: 4px; margin: 10px 0; }
+    .fotoPreview { max-width: 100%; max-height: 200px; border: 2px solid #0f0; margin: 10px 0; display: none; }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); }
+    .modal.show { display: flex; align-items: center; justify-content: center; }
+    .modal-content { background: #1a1a1a; border: 2px solid #0f0; padding: 30px; border-radius: 8px; max-width: 500px; text-align: center; color: #0f0; }
   </style>
 </head>
 <body>
-<div class="container">
 
-  <!-- ========== PANTALLA 1: INICIO ========== -->
-  <div class="pantalla activa" id="pantalla1">
-    <h1 id="titulo">🏆 QUINIENTAZO</h1>
-    <p id="info" class="info"></p>
-    <div id="articuloContainer"></div>
-    <button class="btn btn-ir" id="btnIrGrilla">📋 VER GRILLA Y RESERVAR</button>
+<div id="pin" class="pin">
+  <h1>🔐 QUINIENTAZO</h1>
+  <input type="password" id="pinInput" placeholder="PIN" onkeypress="if(event.key=='Enter') login()">
+  <button onclick="login()">ENTRAR</button>
+  <button onclick="goPublic()">Ver Pública</button>
+</div>
+
+<div id="admin" class="admin hidden">
+  <div class="nav">
+    <h1>⚙️ ADMIN</h1>
+    <button onclick="logout()" style="background:#ff3333">← Salir</button>
   </div>
 
-  <!-- ========== PANTALLA 2: GRILLA ========== -->
-  <div class="pantalla" id="pantalla2">
-    <div class="datos">
-      <input type="text" id="nombre" placeholder="👤 Nombre completo" />
-      <input type="text" id="telefono" placeholder="📱 Teléfono (ej: 3019679760)" />
+  <div class="box">
+    <label>📷 Foto (Cámara):</label>
+    <button onclick="tomarFoto()">📷 Cámara</button>
+    <button onclick="limpiarFoto()" style="background:#ff3333">Limpiar</button>
+  </div>
+
+  <div class="box">
+    <label>🔗 URL Foto:</label>
+    <input type="text" id="urlFoto" class="full" placeholder="https://...">
+    <button onclick="cargarURL()">Cargar URL</button>
+  </div>
+
+  <div class="box">
+    <img id="fotoPreview" class="fotoPreview">
+  </div>
+
+  <div class="box">
+    <label>Chontico Noche:</label>
+    <input type="text" id="chontico" class="full" maxlength="4" oninput="guardar()">
+  </div>
+
+  <div class="box">
+    <label>Ganador:</label>
+    <input type="text" id="ganador" class="full" oninput="guardar()">
+  </div>
+
+  <div class="box">
+    <label>Puestos Vendidos:</label>
+    <p id="porcentaje" style="color:#ffd700; font-size:20px;">0%</p>
+  </div>
+</div>
+
+<div id="public" class="public hidden">
+  <div class="nav">
+    <h1>🦅 QUINIENTAZO</h1>
+    <button onclick="goBack()" style="background:#ffd700">← Atrás</button>
+  </div>
+
+  <div style="text-align:center;">
+    <img id="fotoPublica" class="foto" style="display:none;">
+  </div>
+
+  <div class="stats">
+    <div class="stat-box">
+      <h3>Puestos</h3>
+      <p id="pubVendidos">0</p>
+      <p id="pubPorcentaje">0%</p>
     </div>
-    <div class="grid" id="grid"></div>
-    <div class="total">Seleccionados: <span id="contador">0</span> | Total: $<span id="total">0</span></div>
-    <button class="btn btn-reservar" id="btnReservar" disabled>📲 RESERVAR Y ENVIAR TICKETS</button>
-    <button class="btn btn-volver" id="btnVolverInicio">⬆️ VOLVER AL INICIO</button>
+    <div class="stat-box">
+      <h3>Chontico</h3>
+      <p id="pubChontico">-</p>
+    </div>
   </div>
 
+  <h2>Elige tus Números</h2>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <h2>📦 Compra</h2>
+    <label>Tu nombre:</label>
+    <input type="text" id="modalNombre" placeholder="Nombre">
+    <label>Tu WhatsApp:</label>
+    <input type="text" id="modalWp" placeholder="Número">
+    <button onclick="confirmarCompra()">✓ CONFIRMAR</button>
+    <button onclick="cancelarCompra()" style="background:#ff3333">✕ CANCELAR</button>
+  </div>
 </div>
 
 <script>
-const CONFIG = {
-    titulo: "🏆 yogurinazo",
-    rifa: "CHONTICO",
-    premio: "un paquete de yogurin de 47 unidades",
-    precio: 0,
-    articulo: "BOLI YOGURT P47",
-    descripcion: "Paquete de 47 unidades",
-    imagenArticulo: "https://i.ibb.co/GQzBcP4R/tu-imagen.jpg",  // https://ibb.co/GfW9GJBJ
-    logo: "https://i.ibb.co/84xs8v9D/tu-logo.jpg",            // https://ibb.co/GQzBcP4R
-    fontSize: "11px",
-    totalPuestos: 50,
-    admin: "3019679760"
-};
+const PIN = '8682';
+let datos = { chontico: '', ganador: '', foto: '' };
+let puestos = Array(50).fill(false);
+let numeros = [];
 
-const ADMIN = CONFIG.admin;
-const TOTAL_PUESTOS = CONFIG.totalPuestos;
-const PRECIO = CONFIG.precio;
-
-let puestos = [];
-let seleccionados = [];
-
-function mostrarPantalla(id) {
-    document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
-    document.getElementById(id).classList.add('activa');
+function guardar() {
+  datos.chontico = document.getElementById('chontico').value;
+  datos.ganador = document.getElementById('ganador').value;
+  localStorage.setItem('quinientazo', JSON.stringify(datos));
+  localStorage.setItem('puestos', JSON.stringify(puestos));
 }
 
-function initPuestos() {
-    puestos = [];
-    for (let i = 0; i < TOTAL_PUESTOS; i++) {
-        const num1 = i * 2;
-        const num2 = i * 2 + 1;
-        puestos.push({
-            id: i,
-            label: String(num1).padStart(2, '0') + '-' + String(num2).padStart(2, '0'),
-            reservado: false,
-            comprador: null
-        });
+function cargar() {
+  const saved = localStorage.getItem('quinientazo');
+  if (saved) datos = JSON.parse(saved);
+  const savedPuestos = localStorage.getItem('puestos');
+  if (savedPuestos) puestos = JSON.parse(savedPuestos);
+}
+
+function tomarFoto() {
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(stream => {
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.play();
+      const btn = document.createElement('button');
+      btn.textContent = 'Capturar';
+      btn.style.padding = '20px';
+      document.body.appendChild(btn);
+      btn.onclick = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+        datos.foto = canvas.toDataURL('image/jpeg');
+        guardar();
+        document.getElementById('fotoPreview').src = datos.foto;
+        document.getElementById('fotoPreview').style.display = 'block';
+        stream.getTracks().forEach(t => t.stop());
+        btn.remove();
+        alert('Foto capturada');
+      };
+    })
+    .catch(e => alert('Error cámara: ' + e.message));
+}
+
+function cargarURL() {
+  const url = document.getElementById('urlFoto').value.trim();
+  if (url) {
+    datos.foto = url;
+    guardar();
+    document.getElementById('fotoPreview').src = url;
+    document.getElementById('fotoPreview').style.display = 'block';
+    alert('URL guardada');
+  }
+}
+
+function limpiarFoto() {
+  datos.foto = '';
+  document.getElementById('urlFoto').value = '';
+  document.getElementById('fotoPreview').style.display = 'none';
+  guardar();
+}
+
+function login() {
+  if (document.getElementById('pinInput').value === PIN) {
+    document.getElementById('pin').classList.add('hidden');
+    document.getElementById('admin').classList.remove('hidden');
+    cargar();
+    document.getElementById('chontico').value = datos.chontico;
+    document.getElementById('ganador').value = datos.ganador;
+    if (datos.foto) {
+      document.getElementById('fotoPreview').src = datos.foto;
+      document.getElementById('fotoPreview').style.display = 'block';
     }
+    document.getElementById('porcentaje').textContent = Math.round((puestos.filter(p => p).length / 50) * 100) + '%';
+  } else {
+    alert('PIN incorrecto');
+  }
 }
 
-function renderGrid() {
-    const grid = document.getElementById('grid');
-    grid.innerHTML = '';
-    puestos.forEach((p, idx) => {
-        const div = document.createElement('div');
-        div.className = 'puesto';
-        div.style.fontSize = CONFIG.fontSize;
-        if (p.reservado) div.classList.add('reservado');
-        if (seleccionados.includes(idx)) div.classList.add('seleccionado');
-        div.textContent = p.label;
-        div.onclick = () => togglePuesto(idx);
-        grid.appendChild(div);
-    });
-    actualizarTotal();
+function logout() {
+  document.getElementById('admin').classList.add('hidden');
+  document.getElementById('pin').classList.remove('hidden');
+  document.getElementById('pinInput').value = '';
 }
 
-function togglePuesto(idx) {
-    const p = puestos[idx];
-    if (p.reservado) return;
-    const i = seleccionados.indexOf(idx);
-    if (i === -1) {
-        seleccionados.push(idx);
+function goPublic() {
+  document.getElementById('pin').classList.add('hidden');
+  document.getElementById('public').classList.remove('hidden');
+  cargar();
+  if (datos.foto) {
+    document.getElementById('fotoPublica').src = datos.foto;
+    document.getElementById('fotoPublica').style.display = 'block';
+  }
+  construirGrilla();
+}
+
+function goBack() {
+  document.getElementById('public').classList.add('hidden');
+  document.getElementById('pin').classList.remove('hidden');
+}
+
+function construirGrilla() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 50; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'gridBtn';
+    btn.textContent = String(i * 2).padStart(2, '0') + '-' + String(i * 2 + 1).padStart(2, '0');
+    if (puestos[i]) {
+      btn.disabled = true;
     } else {
-        seleccionados.splice(i, 1);
+      btn.onclick = () => seleccionar(i, btn);
     }
-    renderGrid();
-    document.getElementById('btnReservar').disabled = seleccionados.length === 0;
+    grid.appendChild(btn);
+  }
+  document.getElementById('pubVendidos').textContent = puestos.filter(p => p).length;
+  document.getElementById('pubPorcentaje').textContent = Math.round((puestos.filter(p => p).length / 50) * 100) + '%';
+  document.getElementById('pubChontico').textContent = datos.chontico || '-';
 }
 
-function actualizarTotal() {
-    document.getElementById('contador').textContent = seleccionados.length;
-    document.getElementById('total').textContent = (seleccionados.length * PRECIO).toLocaleString('es-CO');
+function seleccionar(idx, btn) {
+  if (numeros.includes(idx)) {
+    numeros = numeros.filter(i => i !== idx);
+    btn.classList.remove('selected');
+  } else {
+    numeros.push(idx);
+    btn.classList.add('selected');
+  }
 }
 
-function generarTicketComprador(nombre, telefono, puestosSel, total) {
-    const lista = puestosSel.map(idx => puestos[idx].label).join(', ');
-    return '🧾 CONFIRMACIÓN DE COMPRA\n═══════════════════════════════════════\n🎟️ Rifa: ' + CONFIG.rifa + '\n🏆 Premio: ' + CONFIG.premio + '\n📦 Artículo: ' + CONFIG.articulo + '\n───────────────────────────────────────\n📦 Puestos: ' + lista + '\n💰 Total: $' + total.toLocaleString('es-CO') + '\n───────────────────────────────────────\n👤 Comprador: ' + nombre + '\n📱 Teléfono: ' + telefono + '\n📅 ' + new Date().toLocaleString('es-CO') + '\n═══════════════════════════════════════\n✅ Guarda este ticket como comprobante';
-}
-
-function generarTicketAdmin(nombre, telefono, puestosSel, total) {
-    const lista = puestosSel.map(idx => puestos[idx].label).join(', ');
-    return '📦 NUEVA COMPRA - RIFA ' + CONFIG.rifa + '\n═══════════════════════════════════════\n🎟️ Puestos: ' + lista + '\n💰 Total: $' + total.toLocaleString('es-CO') + '\n📦 Artículo: ' + CONFIG.articulo + '\n───────────────────────────────────────\n👤 Comprador: ' + nombre + '\n📱 Teléfono: ' + telefono + '\n📅 ' + new Date().toLocaleString('es-CO') + '\n═══════════════════════════════════════\n✅ Ticket enviado al comprador';
-}
-
-function enviarTickets() {
-    const nombre = document.getElementById('nombre').value.trim();
-    const telefono = document.getElementById('telefono').value.trim();
-
-    if (!nombre || !telefono || telefono.length < 10) {
-        alert('⚠️ Completa nombre y teléfono válido');
-        return;
-    }
-
-    if (seleccionados.length === 0) {
-        alert('⚠️ Selecciona al menos un puesto');
-        return;
-    }
-
-    const total = seleccionados.length * PRECIO;
-
-    const ticketComprador = generarTicketComprador(nombre, telefono, seleccionados, total);
-    const ticketAdmin = generarTicketAdmin(nombre, telefono, seleccionados, total);
-
-    seleccionados.forEach(idx => {
-        puestos[idx].reservado = true;
-        puestos[idx].comprador = nombre;
-    });
-// Enviar al comprador
-window.open(`whatsapp://send?phone=57${telefono}&text=${encodeURIComponent(ticketComprador)}`, '_blank');
-
-// Enviar al admin
-window.open(`whatsapp://send?phone=57${ADMIN}&text=${encodeURIComponent(ticketAdmin)}`, '_blank');
-
-    seleccionados = [];
-    renderGrid();
-    document.getElementById('btnReservar').disabled = true;
-
-    alert('✅ Tickets enviados a tu WhatsApp y al administrador');
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('btnIrGrilla').onclick = () => mostrarPantalla('pantalla2');
-    document.getElementById('btnVolverInicio').onclick = () => mostrarPantalla('pantalla1');
-    document.getElementById('btnReservar').onclick = enviarTickets;
-
-    if (CONFIG.logo) {
-        document.getElementById('titulo').innerHTML = '<img src="' + CONFIG.logo + '" class="logo-img"> ' + CONFIG.titulo;
-    }
-    document.getElementById('info').textContent = 'Rifa: ' + CONFIG.rifa + ' | Premio: ' + CONFIG.premio + ' | Artículo: ' + CONFIG.articulo + ' | Valor puesto: $' + CONFIG.precio.toLocaleString('es-CO');
-    if (CONFIG.imagenArticulo) {
-        document.getElementById('articuloContainer').innerHTML = '<img src="' + CONFIG.imagenArticulo + '" class="articulo-img" alt="Artículo">';
-    }
-
-    initPuestos();
-    renderGrid();
-});
+cargar();
 </script>
-<!-- ============================================================
-     🔒 PANEL DE ADMINISTRACIÓN (SOLO CON CÓDIGO)
-============================================================ -->
-<div id="panelAdmin" style="display:none; background:#1a1a2e; padding:20px; border-radius:10px; margin-top:20px; border:2px solid #ffcc00;">
-    <h3 style="color:#ffcc00;">🔒 PANEL DE ADMINISTRACIÓN</h3>
-    <p style="color:#aaa;">Cambia todo desde aquí (solo con código 8682)</p>
-    
-    <div style="margin:10px 0;">
-        <label style="color:#fff;">📝 Título:</label>
-        <input type="text" id="inputTitulo" value="🏆 yogurinazo" style="width:100%; padding:8px; border-radius:6px; border:none; background:#0d0d1a; color:#fff;">
-    </div>
-    
-    <div style="margin:10px 0;">
-        <label style="color:#fff;">🎟️ Nombre de la rifa:</label>
-        <input type="text" id="inputRifa" value="CHONTICO" style="width:100%; padding:8px; border-radius:6px; border:none; background:#0d0d1a; color:#fff;">
-    </div>
-    
-    <div style="margin:10px 0;">
-        <label style="color:#fff;">🏆 Premio:</label>
-        <input type="text" id="inputPremio" value="un paquete de yogurin de 47 unidades" style="width:100%; padding:8px; border-radius:6px; border:none; background:#0d0d1a; color:#fff;">
-    </div>
-    
-    <div style="margin:10px 0;">
-        <label style="color:#fff;">💰 Precio:</label>
-        <input type="number" id="inputPrecio" value="50000" style="width:100%; padding:8px; border-radius:6px; border:none; background:#0d0d1a; color:#fff;">
-    </div>
-    
-    <div style="margin:10px 0;">
-        <label style="color:#fff;">📦 Artículo:</label>
-        <input type="text" id="inputArticulo" value="BOLI YOGURT P47" style="width:100%; padding:8px; border-radius:6px; border:none; background:#0d0d1a; color:#fff;">
-    </div>
-    
-    <div style="margin:10px 0;">
-        <label style="color:#fff;">🖼️ Logo (URL):</label>
-        <input type="text" id="inputLogo" value="" placeholder="Pega la URL de tu logo" style="width:100%; padding:8px; border-radius:6px; border:none; background:#0d0d1a; color:#fff;">
-    </div>
-    
-    <div style="margin:10px 0;">
-        <label style="color:#fff;">📸 Foto del artículo (URL):</label>
-        <input type="text" id="inputFoto" value="" placeholder="Pega la URL de la foto" style="width:100%; padding:8px; border-radius:6px; border:none; background:#0d0d1a; color:#fff;">
-    </div>
-    
-    <button onclick="guardarConfiguracion()" style="background:#00f5ff; color:#000; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; margin-top:10px;">
-        💾 GUARDAR CAMBIOS
-    </button>
-    
-    <button onclick="cerrarPanel()" style="background:#ff0040; color:#fff; padding:10px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; margin-top:10px;">
-        ❌ CERRAR PANEL
-    </button>
-</div>
 
-<!-- ============================================================
-     BOTÓN PARA ABRIR EL PANEL (SOLO CON CÓDIGO)
-============================================================ -->
-<div style="text-align:center; margin:20px 0;">
-    <button onclick="abrirPanelAdmin()" style="background:#ffcc00; color:#000; padding:12px 24px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
-        🔒 ADMIN (solo con código)
-    </button>
-</div>
 </body>
 </html>
-
